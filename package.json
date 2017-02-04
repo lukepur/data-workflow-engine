@@ -1,0 +1,27 @@
+{
+  "name": "data-engine",
+  "version": "1.0.0",
+  "description": "A data validation and state engine",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --recursive",
+    "test:watch": "mocha --recursive --watch"
+  },
+  "keywords": [
+    "data",
+    "state",
+    "engine"
+  ],
+  "author": "Luke Purton",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
+  },
+  "dependencies": {
+    "js-yaml": "^3.7.0",
+    "lodash": "^4.17.4",
+    "toposort": "^1.0.2",
+    "traverse": "^0.6.6"
+  }
+}

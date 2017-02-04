@@ -1,0 +1,39 @@
+application_details:
+  location: London
+
+personal_details:
+  is_anonymous: false
+  name:
+    title: dr
+    first: Jane
+    last: Brown
+  doctor_type: physicist
+  contact_numbers:
+  - 123
+  - 456
+
+asset_details:
+  assets:
+  - value_known: true
+    value: 1000
+    description: Car
+  - value_known: true
+    value: 10000000
+    description: House
+
+liability_details:
+  liabilities:
+  - value: 5000
+    description: Credit card
+
+previous_applications:
+  items:
+  - status: rejected
+    comments:
+    - author: Bob
+      message: Something does not look right - escalating
+    - author: Jane
+      message: Good spot Bob - rejecting
+
+premium_enrollment:
+  accept: true

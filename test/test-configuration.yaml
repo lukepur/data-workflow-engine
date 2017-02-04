@@ -1,0 +1,187 @@
+---
+
+nodes:
+- id: application_details
+  type: input_section
+  children:
+  - id: location
+    type: value
+    required: Location of application is required
+- id: personal_details
+  type: input_section
+  children:
+  - id: is_anonymous
+    type: value
+    required: Please indicate if this application is anonymous
+  - id: name
+    type: group
+    preconditions:
+    - fn: not
+      args:
+      - fn: isEqual
+        args:
+        - $.personal_details.is_anonymous
+        - true
+    children:
+    - id: title
+      type: value
+      required: Title is required
+    - id: first
+      type: value
+      validations:
+      - fn: greaterThan
+        args:
+        - fn: length
+          args:
+          - $value
+        - 2
+        message: First name must be at least 2 characters long
+    - id: last
+      type: value
+      required:
+      - fn: isBlank
+        args:
+        - $.personal_details.name.first
+        message: Last name is required if first name is blank
+  - id: doctor_type
+    type: value
+    preconditions:
+    - fn: isEqual
+      args:
+      - $.personal_details.name.title
+      - dr
+    required: Doctor type is required
+  - id: contact_numbers
+    type: value
+    required: At least one contact number is required
+
+- id: asset_details
+  type: input_section
+  children:
+  - id: assets
+    type: array_group
+    required: At least one asset is required
+    children:
+    - id: value_known
+      type: value
+      required: Please indicate if asset value is known
+    - id: value
+      type: value
+      preconditions:
+      - fn: equals
+        args:
+        - $.asset_details.assets.^.value_known
+        - true
+      required: Asset value is required
+      validations:
+      - fn: isNumber
+        args:
+        - $value
+        message: Value must be a number
+    - id: description
+      type: value
+      required: Asset description is required
+
+- id: liability_details
+  type: input_section
+  children:
+  - id: liabilities
+    type: array_group
+    children:
+    - id: value
+      type: value
+      required: Liability value is required
+      validations:
+      - fn: isNumber
+        args:
+        - $value
+        message: Value must be a number
+    - id: description
+      type: value
+      required: Liability description is required
+  - id: excess_liability_reason
+    type: value
+    preconditions:
+    - fn: greaterThan
+      args:
+      - fn: sum
+        args:
+        - $.liability_details.liabilities.*.value
+      - 10000
+    required: Reason for large liability required
+
+- id: previous_applications
+  type: input_section
+  children:
+  - id: items
+    type: array_group
+    children:
+    - id: status
+      type: value
+      required: Status is required
+    - id: comments
+      type: array_group
+      children:
+      - id: author
+        type: value
+        required: Author of comment is required
+      - id: message
+        type: value
+        required: Comment message is required
+
+- id: premium_enrollment
+  type: input_section
+  children:
+  - id: accept
+    type: value
+    required: Please indicate whether you accept enrollment in our premium borrower program
+
+
+decisions:
+- id: meets_premium_requirements
+  output:
+    fn: greaterThan
+    args:
+    - fn: sum
+      args:
+      - $.asset_details.assets.*.value
+    - 30000
+
+
+edges:
+- from: START
+  to: application_details
+- from: application_details
+  to: personal_details
+- from: personal_details
+  to: asset_details
+- from: asset_details
+  to: liability_details
+- from: liability_details
+  to: previous_applications
+- from: previous_applications
+  to: meets_premium_requirements
+- from: meets_premium_requirements
+  to: premium_enrollment
+  when_input_is: true
+- from: meets_premium_requirements
+  to: END
+  when_input_is: false
+- from: premium_enrollment
+  to: END
+
+
+derived:
+- id: assets_total_value
+  fn: sum
+  args:
+  - $.asset_details.assets.*.value
+- id: assets_total_adjusted
+  fn: sum
+  args:
+  - fn: concat
+    args:
+    - fn: sum
+      args:
+      - $.asset_details.assets.*.value
+    - 10000
