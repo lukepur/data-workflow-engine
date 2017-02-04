@@ -1,8 +1,12 @@
 {
-  "name": "data-engine",
-  "version": "1.0.0",
+  "name": "data-workflow-engine",
+  "version": "0.0.2",
   "description": "A data validation and state engine",
   "main": "index.js",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/lukepur/data-workflow-engine.git"
+  },
   "scripts": {
     "test": "mocha --recursive",
     "test:watch": "mocha --recursive --watch"
@@ -15,11 +19,11 @@
   "author": "Luke Purton",
   "license": "ISC",
   "devDependencies": {
+    "js-yaml": "^3.7.0",
     "chai": "^3.5.0",
     "mocha": "^3.2.0"
   },
   "dependencies": {
-    "js-yaml": "^3.7.0",
     "lodash": "^4.17.4",
     "toposort": "^1.0.2",
     "traverse": "^0.6.6"
