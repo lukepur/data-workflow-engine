@@ -1,8 +1,8 @@
 {
   "name": "data-workflow-engine",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A data validation and state engine",
-  "main": "index.js",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/lukepur/data-workflow-engine.git"
