@@ -319,7 +319,7 @@ function isBlank(value) {
 }
 
 function resolveRequiredMessage(requiredNode, data, context, path) {
-  let resolvedRequired = resolve(requiredNode, data, context, this.path);
+  let resolvedRequired = resolve(requiredNode, data, context, path);
   if (Array.isArray(resolvedRequired)) {
     resolvedRequired = resolvedRequired.reduce((memo, result, index) => {
       if (result && !memo) {
