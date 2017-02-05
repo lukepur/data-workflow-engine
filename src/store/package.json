@@ -1,0 +1,8 @@
+{
+  "main": "./store.js",
+  "browserify": {
+    "transform": [
+      "babelify"
+    ]
+  }
+}
