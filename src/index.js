@@ -2,14 +2,14 @@ const { cloneDeep, merge, set, get, find } = require('lodash');
 const traverse = require('traverse');
 const toposort = require('toposort');
 
-const resolve = require('./resolver');
-const DataDescriptor = require('./data-descriptor');
+const resolve = require('./resolver/resolver');
+const DataDescriptor = require('./data-descriptor/data-descriptor');
 const prettyJSON = require('./util/pretty-json');
 const {
   getDataPathsForRefPath,
   getRefPathForDataPath
 } = require('./util/path-utils');
-const defaultContext = require('./context');
+const defaultContext = require('./context/context');
 
 module.exports = {
   create: function(config, context) {

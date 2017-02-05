@@ -9,11 +9,11 @@ var _ = require('lodash');
 
 var modules = [
   _,
-  require('./modules/mapping'),
-  require('./modules/comparators'),
-  require('./modules/arrays'),
-  require('./modules/strings'),
-  require('./modules/types')
+  require('./modules/mapping/mapping'),
+  require('./modules/comparators/comparators'),
+  require('./modules/arrays/arrays'),
+  require('./modules/strings/strings'),
+  require('./modules/types/types')
 ];
 
 modules.forEach(m => {
