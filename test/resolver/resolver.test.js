@@ -1,4 +1,4 @@
-const resolver = require('../../resolver');
+const resolver = require('../../src/resolver');
 const { expect } = require('chai');
 
 describe('resolver', () => {

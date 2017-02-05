@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const { cloneDeep, find } = require('lodash');
 
-const DataEngine = require('../index');
+const DataEngine = require('../src/index');
 const testConfig = require('./test-configuration');
 const testData = require('./test-data-objects');
 

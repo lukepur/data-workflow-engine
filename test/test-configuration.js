@@ -1,6 +1,6 @@
 const jsyaml = require('js-yaml');
 
-const loadFile = require('../util/load-file');
+const loadFile = require('../src/util/load-file');
 
 const yaml = loadFile('test/test-configuration.yaml');
 

@@ -1,4 +1,4 @@
-const loadFile = require('../../util/load-file');
+const loadFile = require('../../src/util/load-file');
 const yaml = require('js-yaml');
 
 module.exports = {

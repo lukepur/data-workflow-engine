@@ -4,8 +4,8 @@
   "description": "A data validation and state engine",
   "main": "index.js",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/lukepur/data-workflow-engine.git"
+    "type": "git",
+    "url": "https://github.com/lukepur/data-workflow-engine.git"
   },
   "scripts": {
     "test": "mocha --recursive",
@@ -19,8 +19,9 @@
   "author": "Luke Purton",
   "license": "ISC",
   "devDependencies": {
-    "js-yaml": "^3.7.0",
+    "babel-cli": "^6.22.2",
     "chai": "^3.5.0",
+    "js-yaml": "^3.7.0",
     "mocha": "^3.2.0"
   },
   "dependencies": {
