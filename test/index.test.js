@@ -107,6 +107,17 @@ describe('data-engine', () => {
         });
       });
 
+      it('should not include a validation error for basic required field if ancestral precondition not met', () => {
+        const data = getDataMock('validations');
+        data.personal_details.is_anonymous = true;
+        data.personal_details.name = undefined;
+        const { input_section_states } = instance.getWorkflowState(data);
+        expect(input_section_states.personal_details.validationMessages).not.to.contain({
+          path: 'personal_details.name.title',
+          message: 'Title is required'
+        });
+      });
+
       it('should include a validation message for a missing required array', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = undefined;
@@ -179,9 +190,8 @@ describe('data-engine', () => {
 
       it('should not include a validation message for a required property which is descendant of array_group if non-required ancestor is absent', () => {
         const data = getDataMock('validations');
-        data.previous_applications.comments = undefined;
+        data.previous_applications.items[0].comments = undefined;
         const { input_section_states } = instance.getWorkflowState(data);
-        // console.log(JSON.stringify(input_section_states, null, 2));
         expect(input_section_states.previous_applications.validationMessages).not.to.contain({
           path: 'previous_applications.comments.0.author',
           message: 'Author of comment is required'

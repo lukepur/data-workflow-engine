@@ -6,9 +6,10 @@ function create(config) {
   traverse(config.decisions).forEach(applyPathsFn(map, 'decision'));
 
   config.getConfigNodeByPath = function getConfigNodeByPath(path) {
-    return map[path];
+    return map[path] || map[path.concat('.*')];
   };
 
+  // console.log('map keys:', Object.keys(map));
   return config;
 }
 
@@ -26,6 +27,16 @@ function applyPathsFn(map, type) {
       map[path] = Object.assign({}, node, { type: node.type || type });
     }
   }
+}
+
+function getParentConfigNode(n) {
+  let node = n
+  while(node && node.notRoot) {
+    if (node.node.path) {
+      return node.node;
+    }
+  }
+  return null;
 }
 
 function stringifyPath(pathArr) {
@@ -46,7 +57,6 @@ function buildIdPath(node, tail = []) {
   }
   return buildIdPath(node.parent, tail);
 }
-
 
 module.exports = {
   create

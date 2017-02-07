@@ -7,7 +7,9 @@ const DataDescriptor = require('./data-descriptor/data-descriptor');
 const prettyJSON = require('./util/pretty-json');
 const {
   getDataPathsForRefPath,
-  getRefPathForDataPath
+  getRefPathForDataPath,
+  getParentConfigNodePath,
+  getParentDataPath
 } = require('./util/path-utils');
 const defaultContext = require('./context/context');
 
@@ -75,7 +77,7 @@ function pruneData(data, config, depOrder, context) {
   depOrder.forEach(function (dep) {
     const paths = getDataPathsForRefPath(dep, data);
     paths.forEach(function (path) {
-      if (!preconditionsMet(config.getConfigNodeByPath(dep), data, context, path)) {
+      if (!evaluatePreconditions(config, dep, data, context, path)) {
         // remove data at path
         set(result, path, undefined);
       }
@@ -84,15 +86,19 @@ function pruneData(data, config, depOrder, context) {
   return result;
 }
 
-function preconditionsMet(configNode, data, context, dataPath) {
+function evaluatePreconditions(config, configPath, data, context, dataPath) {
+  const configNode = config.getConfigNodeByPath(configPath);
+  if (!configNode) {
+    return true;
+  }
   const preconditions = configNode.preconditions;
   if (!preconditions || !Array.isArray(preconditions)) {
-    // no preconditions, so 'met' by default
-    return true;
+    // no preconditions, so 'met' by default - evaluate parent
+    return evaluatePreconditions(config, getParentConfigNodePath(configPath), data, context, getParentDataPath(dataPath));
   }
   return preconditions.reduce((memo, precondition) => {
     return memo && resolve(precondition, data, context, dataPath);
-  }, true);
+  }, true) && evaluatePreconditions(config, getParentConfigNodePath(configPath), data, context, getParentDataPath(dataPath));
 }
 
 function evaluateDerived(data, derivedConfigNode = [], context) {
@@ -117,24 +123,21 @@ function evaluateSectionStates(data = {}, config = {}, context = {}) {
         if (!isArrayPath(n.path)) {
           // static path, e.g. $.personal_details.name.title
           const dataPath = n.path.replace('$.', '');
-          // console.log('validating static path', dataPath);
-          applyRequiredValidationIfMissing(n, data, context, dataPath, validationMessages);
+          applyRequiredValidationIfMissing(config, n.path, data, context, dataPath, validationMessages);
         } else {
           let pathHead = n.path.split('.');
           pathHead.pop();
           pathHead = pathHead.join('.');
           if (!isArrayPath(pathHead)) {
-            applyRequiredValidationIfMissing(n, data, context, pathHead.replace('$.', ''), validationMessages);
+            applyRequiredValidationIfMissing(config, n.path, data, context, pathHead.replace('$.', ''), validationMessages);
           } else {
             // array descendant
             const ancestorRefPath = getNearestRepeatableAncestorRefPath(pathHead);
             const dataPaths = getDataPathsForRefPath(ancestorRefPath, data);
-            // console.log(n.path, ' ancestor:', ancestorRefPath);
-            // console.log('dataPaths:', dataPaths);
             dataPaths.forEach(dataPath => {
               const dataPathString = dataPath.join('.')
               const absoluteDataPath = getAbsoluteDataPath(dataPathString, n.path);
-              applyRequiredValidationIfMissing(n, data, context, absoluteDataPath, validationMessages);
+              applyRequiredValidationIfMissing(config, n.path, data, context, absoluteDataPath, validationMessages);
             });
           }
         }
@@ -147,11 +150,8 @@ function evaluateSectionStates(data = {}, config = {}, context = {}) {
     traverse(data[sectionId]).forEach(function(dataNode) {
       const absolutePath = [sectionId].concat(this.path);
       if (this.isLeaf) {
-        const configNode = config
-          .getConfigNodeByPath(
-            getRefPathForDataPath(absolutePath)
-          );
-        applyCustomValidationIfFails(configNode, data, context, absolutePath, validationMessages);
+        const configPath = getRefPathForDataPath(absolutePath);
+        applyCustomValidationIfFails(config, configPath, data, context, absolutePath, validationMessages);
       }
     });
     result[sectionId] = {
@@ -220,25 +220,20 @@ function getNodeEvaluationOrder(edges = []) {
   return toposort(dependencies).reverse();
 }
 
-function applyRequiredValidationIfMissing(configNode, data, context, path, messageArr) {
-  const validationMessage = validateRequired(configNode, data, context, path);
+function applyRequiredValidationIfMissing(config, configPath, data, context, path, messageArr) {
+  const validationMessage = validateRequired(config, configPath, data, context, path);
   if (validationMessage) {
-    // console.log('adding validation message:', validationMessage);
     messageArr.push(validationMessage);
   }
 }
 
-function validateRequired(configNode, data, context, path) {
+function validateRequired(config, configPath, data, context, path) {
+  const configNode = config.getConfigNodeByPath(configPath);
   const requiredMessage = resolveRequiredMessage(configNode.required, data, context, path);
-  // console.log('\n\npath:', path);
-  // console.log('requiredMessage:', requiredMessage);
-  // console.log('preconditionsMet:', preconditionsMet(configNode, data, context, path));
-  // console.log('dataNodeIsBlank:', dataNodeIsBlank(path, data));
   if (  requiredMessage
-        && preconditionsMet(configNode, data, context, path)
+        && evaluatePreconditions(config, configPath, data, context, path)
         && dataNodeIsBlank(path, data)
      ) {
-    // console.log('required message for ', path, requiredMessage);
     return {
       path,
       message: requiredMessage
@@ -247,20 +242,20 @@ function validateRequired(configNode, data, context, path) {
   return null; // valid
 }
 
-function applyCustomValidationIfFails(configNode, data, context, path, messageArr) {
-  const validationMessage = validateCustom(configNode, data, context, path);
+function applyCustomValidationIfFails(config, configPath, data, context, path, messageArr) {
+  const validationMessage = validateCustom(config, configPath, data, context, path);
   if (validationMessage && !find(messageArr, {path: path.join('.')})) {
-    // console.log('adding validation message:', validationMessage);
     messageArr.push(validationMessage);
   }
 }
 
-function validateCustom(configNode={}, data, context, path) {
+function validateCustom(config, configPath, data, context, path) {
+  const configNode = config.getConfigNodeByPath(configPath);
   const validations = configNode.validations;
   if (!validations) {
     return null;
   }
-  if (  preconditionsMet(configNode, data, context, path)
+  if (  evaluatePreconditions(config, configPath, data, context, path)
         && !isBlank(get(data, path))) {
     for (let i = 0; i < validations.length; i += 1) {
       const validation = validations[i];
@@ -302,7 +297,6 @@ function getAbsoluteDataPath(rootDataPath, refPath) {
 
 function dataNodeIsBlank(path, data) {
   const value = get(data, path);
-  // console.log('dataNode value:', value);
   if (value === undefined || value === '') {
     return true;
   }

@@ -1,4 +1,5 @@
 const traverse = require('traverse');
+const { dropRight } = require('lodash');
 
 function matches(refPath = [], dataPath = []) {
   return refPath.length === dataPath.length && refPath.reduce((memo, token, index) => {
@@ -22,4 +23,12 @@ module.exports.getRefPathForDataPath = function getRefPathForDataPath(dataPath =
   return dataPath.reduce((memo, prop) => {
     return `${memo}.${!isNaN(prop) ? '*' : prop}`;
   }, '$').replace(/\.\*$/, ''); // remove trailing '.*'
+}
+
+module.exports.getParentConfigNodePath = function getParentConfigNodePath(path = '') {
+  return dropRight(path.split('.')).join('.');
+}
+
+module.exports.getParentDataPath = function getParentDataPath(path = []) {
+  return dropRight(path);
 }

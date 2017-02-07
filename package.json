@@ -10,7 +10,9 @@
   "scripts": {
     "build": "node_modules/.bin/babel src --presets babel-preset-es2015 --out-dir dist",
     "test": "mocha --recursive",
+    "test:debug": "mocha --recursive --debug",
     "test:watch": "mocha --recursive --watch",
+    "test:watch:debug": "mocha --recursive --watch --debug-brk",
     "prepublish": "npm run build"
   },
   "keywords": [
