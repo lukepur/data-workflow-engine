@@ -1,4 +1,4 @@
-const { cloneDeep, merge, set, get, find } = require('lodash');
+const { cloneDeep, merge, set, get, find, dropRight } = require('lodash');
 const traverse = require('traverse');
 const toposort = require('toposort');
 
@@ -243,22 +243,34 @@ function validateRequired(config, configPath, data, context, path) {
 }
 
 function applyCustomValidationIfFails(config, configPath, data, context, path, messageArr) {
-  const validationMessage = validateCustom(config, configPath, data, context, path);
-  if (validationMessage && !find(messageArr, {path: path.join('.')})) {
+  const configNode = config.getConfigNodeByPath(configPath);
+  let dataPath = [...path];
+  if (configNode.type === 'array_value') {
+    const validationMessage = validateCustom(config, configPath, data, context, dataPath, 'item_validations');
+    if (validationMessage && !find(messageArr, {path: dataPath.join('.')})) {
+      messageArr.push(validationMessage);
+    }
+    dataPath = dropRight(dataPath);
+  }
+  const validationMessage = validateCustom(config, configPath, data, context, dataPath);
+  if (validationMessage && !find(messageArr, {path: dataPath.join('.')})) {
     messageArr.push(validationMessage);
   }
 }
 
-function validateCustom(config, configPath, data, context, path) {
+function validateCustom(config, configPath, data, context, path, validationsProp = 'validations') {
   const configNode = config.getConfigNodeByPath(configPath);
-  const validations = configNode.validations;
+  const validations = configNode[validationsProp];
   if (!validations) {
     return null;
   }
-  if (  evaluatePreconditions(config, configPath, data, context, path)
-        && !isBlank(get(data, path))) {
+  if ( evaluatePreconditions(config, configPath, data, context, path)
+       && !isBlank(get(data, path))) {
     for (let i = 0; i < validations.length; i += 1) {
       const validation = validations[i];
+      if (configNode.type === 'array_value') {
+
+      }
       if (resolve(validation, data, context, path) === false) {
         return {
           path: path.join('.'),

@@ -124,7 +124,7 @@ describe('data-engine', () => {
         const { input_section_states } = instance.getWorkflowState(data);
         expect(input_section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
-          message: 'At least one contact number is required'
+          message: 'Contact numbers are required'
         });
       });
 
@@ -134,7 +134,7 @@ describe('data-engine', () => {
         const { input_section_states } = instance.getWorkflowState(data);
         expect(input_section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
-          message: 'At least one contact number is required'
+          message: 'Contact numbers are required'
         });
       });
 
@@ -144,18 +144,38 @@ describe('data-engine', () => {
         const { input_section_states } = instance.getWorkflowState(data);
         expect(input_section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
-          message: 'At least one contact number is required'
+          message: 'Contact numbers are required'
         });
       });
 
-      it('should not include a validation message for an array with a non-blank string', () => {
+      it('should include a validation message if array_value validation fails', () => {
+        const data = getDataMock('validations');
+        data.personal_details.contact_numbers = ['1234'];
+        const { input_section_states } = instance.getWorkflowState(data);
+        expect(input_section_states.personal_details.validationMessages).to.contain({
+          path: 'personal_details.contact_numbers',
+          message: 'At least 2 contact numbers are required'
+        });
+      });
+
+      it('should include a validation message for both array level and element level failures', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = ['a'];
         const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).not.to.contain({
+        expect(input_section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
-          message: 'At least one contact number is required'
+          message: 'At least 2 contact numbers are required'
         });
+        expect(input_section_states.personal_details.validationMessages).to.contain({
+          path: 'personal_details.contact_numbers.0',
+          message: 'Contact numbers must be numeric'
+        });
+      });
+
+      it('should not include a validation message for valid array_value', () => {
+        const data = getDataMock('validations');
+        const { input_section_states } = instance.getWorkflowState(data);
+        expect(input_section_states.personal_details.validationMessages).to.eql([]);
       });
 
       it('should not include a validation message for an array with a 0', () => {

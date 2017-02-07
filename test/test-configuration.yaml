@@ -52,8 +52,21 @@ nodes:
       - dr
     required: Doctor type is required
   - id: contact_numbers
-    type: value
-    required: At least one contact number is required
+    type: array_value
+    required: Contact numbers are required
+    validations:
+    - fn: greaterThan
+      args:
+      - fn: arrayLength
+        args:
+        - $value
+      - 1
+      message: At least 2 contact numbers are required
+    item_validations:
+    - fn: isNumeric
+      args:
+      - $value
+      message: Contact numbers must be numeric
 
 - id: asset_details
   type: input_section
