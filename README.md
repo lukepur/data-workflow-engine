@@ -5,6 +5,10 @@ A configurable data workflow engine. Configure an engine with:
   1. a workflow configuration JSON
   2. a `computation_context`
 
+## Demo
+
+View an online demo here: [https://lukepur.github.io/data-workflow-engine](https://lukepur.github.io/data-workflow-engine).
+
 ## Workflow configuration
 
 The workflow configuration object has the following properties:
