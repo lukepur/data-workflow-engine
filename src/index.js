@@ -43,16 +43,16 @@ DataEngine.prototype.getWorkflowState = function (data) {
   return {
     data: prunedData,
     derived: evaluateDerived(prunedData, this.getConfig().derived, this.getContext()),
-    input_section_states: sectionStates,
+    section_states: sectionStates,
     edge_states: evaluateEdgeStates(prunedData, this.getConfig(), this.getContext(), sectionStates)
   };
 };
 
 function orderPreconditions(config) {
-  const { nodes, edges } = config;
+  const { sections, edges } = config;
   const deps = [];
   // collect node preconditions '$' ref dependencies
-  traverse(nodes).forEach(function (node) {
+  traverse(sections).forEach(function (node) {
     if (node && node.preconditions) {
       const dependantPath = node.path;
       traverse(node.preconditions).forEach(function (preconNode) {
@@ -109,9 +109,9 @@ function evaluateDerived(data, derivedConfigNode = [], context) {
 }
 
 function evaluateSectionStates(data = {}, config = {}, context = {}) {
-  const { nodes } = config;
+  const { sections } = config;
   const result = {};
-  nodes.forEach(node => {
+  sections.forEach(node => {
     const sectionId = node.id;
     const validationMessages = [];
     traverse(node).forEach(function (n) {
@@ -176,7 +176,7 @@ function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates)
       memo[nodePath] = 'inactive';
       return memo;
     }
-    if (node.type === 'input_section') {
+    if (node.type === 'section') {
       if (sectionStates[node.id.replace('$.', '')].status === 'valid') {
         memo[nodePath] = 'active';
         return memo;

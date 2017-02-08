@@ -12,22 +12,22 @@ View an online demo here: [https://lukepur.github.io/data-workflow-engine](https
 ## Workflow configuration
 
 The workflow configuration object has the following properties:
-  - `nodes`: an array of items with a `type` of 'input-section' - nodes which make up the input components of the workflow
+  - `sections`: an array of items with a `type` of 'section' - nodes which make up the input components of the workflow
   - `decisions`: nodes which allow conditional paths through the workflow
   - `edges`: an array of `edge` items which describe the paths connecting the nodes of the workflow
   - `derived_data`: an array of derived data items which compute the output of running custom functions on a data instance
 
 These entities have the following properties:
 
-#### `input_section`
+#### `section`
 
-  - `id`: a unique string reference to this `input_section`
-  - `children`: an array of the `input_section`'s items (either `group`, `array_group`, or `value`)
+  - `id`: a unique string reference to this `section`
+  - `children`: an array of the `section`'s items (either `group`, `array_group`, or `value`)
 
-An `input_section` of a data instance can be in one of the following states:
+An `section` of a data instance can be in one of the following states:
 
-  - `invalid`: there are validation errors in the `input_section`
-  - `valid`: there are no validation errors in the `input_section`
+  - `invalid`: there are validation errors in the `section`
+  - `valid`: there are no validation errors in the `section`
 
 #### `decision`
 
@@ -89,7 +89,7 @@ Returns an object with the following shape:
 {
   data: Object, // a 'pruned' representation of `dataInstanceObject` - unmet preconditions and unspecified data items are removed
   derived: Object, // object containing the results of the derived calculations (derived id's are object keys, with results the values)
-  input_section_states: Object, // object containing the state of the workflow nodes for `dataInstanceObject`. Each section's ID is a key in the object, and the value has the properties: `status` (either 'valid' or 'invalid') and `validationMessages` which contains an array of `validationMessage` objects
+  section_states: Object, // object containing the state of the workflow nodes for `dataInstanceObject`. Each section's ID is a key in the object, and the value has the properties: `status` (either 'valid' or 'invalid') and `validationMessages` which contains an array of `validationMessage` objects
   edge_states: Array // an array of the edge states of the configuration, enhanced with a `status` property - 'active' or 'inactive' depending on whether the `dataInstanceObject` activates this edge
 }
 ```

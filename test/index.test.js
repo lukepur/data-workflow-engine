@@ -80,18 +80,18 @@ describe('data-engine', () => {
       });
     });
 
-    describe('input_section_states property', () => {
+    describe('section_states property', () => {
       it('should exist', () => {
         const data = getDataMock('validations');
         const workflowState = instance.getWorkflowState(data);
-        expect(workflowState.input_section_states).to.exist;
+        expect(workflowState.section_states).to.exist;
       });
 
       it('should include a validation error for basic missing required field', () => {
         const data = getDataMock('validations');
         data.application_details.location = '';
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.application_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.application_details.validationMessages).to.contain({
           path: 'application_details.location',
           message: 'Location of application is required'
         });
@@ -100,8 +100,8 @@ describe('data-engine', () => {
       it('should not include a validation error for basic present required field', () => {
         const data = getDataMock('validations');
         data.application_details.location = 'London';
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.application_details.validationMessages).not.to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.application_details.validationMessages).not.to.contain({
           path: 'application_details.location',
           message: 'Location of application is required'
         });
@@ -111,8 +111,8 @@ describe('data-engine', () => {
         const data = getDataMock('validations');
         data.personal_details.is_anonymous = true;
         data.personal_details.name = undefined;
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).not.to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).not.to.contain({
           path: 'personal_details.name.title',
           message: 'Title is required'
         });
@@ -121,8 +121,8 @@ describe('data-engine', () => {
       it('should include a validation message for a missing required array', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = undefined;
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
           message: 'Contact numbers are required'
         });
@@ -131,8 +131,8 @@ describe('data-engine', () => {
       it('should include a validation message for an empty required array', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = [];
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
           message: 'Contact numbers are required'
         });
@@ -141,8 +141,8 @@ describe('data-engine', () => {
       it('should include a validation message for an array with one blank string', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = [''];
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
           message: 'Contact numbers are required'
         });
@@ -151,8 +151,8 @@ describe('data-engine', () => {
       it('should include a validation message if array_value validation fails', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = ['1234'];
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
           message: 'At least 2 contact numbers are required'
         });
@@ -161,12 +161,12 @@ describe('data-engine', () => {
       it('should include a validation message for both array level and element level failures', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = ['a'];
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers',
           message: 'At least 2 contact numbers are required'
         });
-        expect(input_section_states.personal_details.validationMessages).to.contain({
+        expect(section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.contact_numbers.0',
           message: 'Contact numbers must be numeric'
         });
@@ -174,15 +174,15 @@ describe('data-engine', () => {
 
       it('should not include a validation message for valid array_value', () => {
         const data = getDataMock('validations');
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).to.eql([]);
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).to.eql([]);
       });
 
       it('should not include a validation message for an array with a 0', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = [0];
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).not.to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).not.to.contain({
           path: 'personal_details.contact_numbers',
           message: 'At least one contact number is required'
         });
@@ -191,8 +191,8 @@ describe('data-engine', () => {
       it('should not include a validation message for an array with false', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = [false];
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).not.to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).not.to.contain({
           path: 'personal_details.contact_numbers',
           message: 'At least one contact number is required'
         });
@@ -201,8 +201,8 @@ describe('data-engine', () => {
       it('should include a validation message for a required property which is descendant of array_group', () => {
         const data = getDataMock('validations');
         data.asset_details.assets[0].description = '';
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.asset_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.asset_details.validationMessages).to.contain({
           path: 'asset_details.assets.0.description',
           message: 'Asset description is required'
         });
@@ -211,8 +211,8 @@ describe('data-engine', () => {
       it('should not include a validation message for a required property which is descendant of array_group if non-required ancestor is absent', () => {
         const data = getDataMock('validations');
         data.previous_applications.items[0].comments = undefined;
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.previous_applications.validationMessages).not.to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.previous_applications.validationMessages).not.to.contain({
           path: 'previous_applications.comments.0.author',
           message: 'Author of comment is required'
         });
@@ -222,8 +222,8 @@ describe('data-engine', () => {
       it('should include a message for a custom validation failure if field is present', () => {
         const data = getDataMock('validations');
         data.asset_details.assets[0].value = 'nan';
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.asset_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.asset_details.validationMessages).to.contain({
           path: 'asset_details.assets.0.value',
           message: 'Value must be a number'
         });
@@ -232,8 +232,8 @@ describe('data-engine', () => {
       it('should include a message for a custom validation failure if field is present but not required', () => {
         const data = getDataMock('validations');
         data.personal_details.name.first = 'a';
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).to.contain({
           path: 'personal_details.name.first',
           message: 'First name must be at least 2 characters long'
         });
@@ -242,8 +242,8 @@ describe('data-engine', () => {
       it('should not include a message for a custom validation failure if field is not present', () => {
         const data = getDataMock('validations');
         data.personal_details.name.first = undefined;
-        const { input_section_states } = instance.getWorkflowState(data);
-        expect(input_section_states.personal_details.validationMessages).not.to.contain({
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.personal_details.validationMessages).not.to.contain({
           path: 'personal_details.name.first',
           message: 'First name must be at least 2 characters long'
         });

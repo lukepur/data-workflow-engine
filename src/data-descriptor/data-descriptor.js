@@ -2,7 +2,7 @@ const traverse = require('traverse');
 
 function create(config) {
   var map = {};
-  traverse(config.nodes).forEach(applyPathsFn(map));
+  traverse(config.sections).forEach(applyPathsFn(map));
   traverse(config.decisions).forEach(applyPathsFn(map, 'decision'));
 
   config.getConfigNodeByPath = function getConfigNodeByPath(path) {

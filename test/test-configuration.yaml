@@ -1,14 +1,14 @@
 ---
 
-nodes:
+sections:
 - id: application_details
-  type: input_section
+  type: section
   children:
   - id: location
     type: value
     required: Location of application is required
 - id: personal_details
-  type: input_section
+  type: section
   children:
   - id: is_anonymous
     type: value
@@ -69,7 +69,7 @@ nodes:
       message: Contact numbers must be numeric
 
 - id: asset_details
-  type: input_section
+  type: section
   children:
   - id: assets
     type: array_group
@@ -96,7 +96,7 @@ nodes:
       required: Asset description is required
 
 - id: liability_details
-  type: input_section
+  type: section
   children:
   - id: liabilities
     type: array_group
@@ -124,7 +124,7 @@ nodes:
     required: Reason for large liability required
 
 - id: previous_applications
-  type: input_section
+  type: section
   children:
   - id: items
     type: array_group
@@ -143,7 +143,7 @@ nodes:
         required: Comment message is required
 
 - id: premium_enrollment
-  type: input_section
+  type: section
   children:
   - id: accept
     type: value
