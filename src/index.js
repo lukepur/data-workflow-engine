@@ -1,4 +1,4 @@
-const { cloneDeep, merge, set, get, find, dropRight } = require('lodash');
+const { cloneDeep, merge, set, get, find, dropRight, reduce } = require('lodash');
 const traverse = require('traverse');
 const toposort = require('toposort');
 
@@ -41,12 +41,14 @@ function DataEngine(c, ctx = {}) {
 DataEngine.prototype.getWorkflowState = function (data) {
   const prunedData = pruneData(data, this.getConfig(), this.getPreconditionOrder(), this.getContext());
   const sectionStates = evaluateSectionStates(prunedData, this.getConfig(), this.getContext());
+  const edgeStates = evaluateEdgeStates(prunedData, this.getConfig(), this.getContext(), sectionStates);
+  const finalData = removeUnreachableSections(prunedData, edgeStates);
   return {
-    data: prunedData,
-    mapped_data: applyDataMappings(prunedData, this.getConfig()),
-    derived: evaluateDerived(prunedData, this.getConfig().derived, this.getContext()),
+    data: finalData,
+    mapped_data: applyDataMappings(finalData, this.getConfig()),
+    derived: evaluateDerived(finalData, this.getConfig().derived, this.getContext()),
     section_states: sectionStates,
-    edge_states: evaluateEdgeStates(prunedData, this.getConfig(), this.getContext(), sectionStates)
+    edge_states: edgeStates
   };
 };
 
@@ -114,6 +116,15 @@ DataEngine.prototype.previousSection = function (currentSectionId, data) {
     sectionId: frontier.to,
     validationMessages: section_states[frontier.to].validationMessages
   };
+}
+
+function removeUnreachableSections(data, edge_states) {
+  return reduce(data, (memo, item, sectionId) => {
+    if (_isSectionReachable(edge_states, sectionId)) {
+      memo[sectionId] = item;
+    }
+    return memo;
+  }, {});
 }
 
 function _isSectionReachable(edge_states, requestedSectionId) {

@@ -6,6 +6,12 @@ const testConfig = require('./test-configuration');
 const testData = require('./test-data-objects');
 
 describe('data-engine', () => {
+  let data;
+
+  beforeEach(() => {
+    data = getDataMock('complete');
+  });
+
   it('should create a data-engine instance', () => {
     expect(DataEngine.create(testConfig)).to.exist;
   });
@@ -29,36 +35,34 @@ describe('data-engine', () => {
       });
 
       it('should remove unmet single precondition', () => {
-        const data = testData.unmetPreconditions;
         expect(data.personal_details.name.title).to.exist;
         expect(data.personal_details.doctor_type).to.exist;
+        data.personal_details.name.title = 'ms';
         const workflowState = instance.getWorkflowState(data);
         expect(workflowState.data.personal_details.name.title).to.exist;
         expect(workflowState.data.personal_details.doctor_type).not.to.exist;
       });
 
       it('should remove unmet relative ref precondition', () => {
-        const data = testData.unmetPreconditions;
-        expect(data.asset_details.assets[0].value).to.eql(10000);
-        expect(data.asset_details.assets[1].value).to.eql(2000);
+        data.asset_details.assets[0].value_known = false;
         const workflowState = instance.getWorkflowState(data);
-        expect(workflowState.data.asset_details.assets[0].value).to.eql(10000);
-        expect(workflowState.data.asset_details.assets[1].value).to.be.undefined;
+        expect(workflowState.data.asset_details.assets[0].value).to.be.undefined;
       });
 
       it('should remove descendants of unmet precondition node', () => {
-        const data = testData.anonymous;
-        expect(data.personal_details.name.title).to.eql('will_be_pruned');
+        data.personal_details.is_anonymous = true;
         const workflowState = instance.getWorkflowState(data);
         expect(workflowState.data.personal_details.name).not.to.exist;
       });
 
-      describe('data_mapping feature', () => {
-        let data;
+      it('should remove unreachable sections', () => {
+        expect(data.liability_details).to.exist;
+        data.asset_details.assets = undefined;
+        const { data: result } = instance.getWorkflowState(data);
+        expect(result.liability_details).not.to.exist;
+      });
 
-        beforeEach(() => {
-          data = getDataMock('validations');
-        });
+      describe('data_mapping feature', () => {
 
         it('should add a `mapped_data` property to state object', () => {
           const { mapped_data: result } = instance.getWorkflowState(data);
@@ -84,39 +88,34 @@ describe('data-engine', () => {
 
     describe('derived property', () => {
       it('should exist', () => {
-        const data = testData.complete;
         const workflowState = instance.getWorkflowState(data);
         expect(workflowState.derived).to.exist;
       });
 
       it('should include correctly calculated property', () => {
-        const data = testData.complete;
         const workflowState = instance.getWorkflowState(data);
-        expect(workflowState.derived.assets_total_value).to.eql(1012000);
+        expect(workflowState.derived.assets_total_value).to.eql(10001000);
       });
 
       it('should not include pruned values in calculated property', () => {
-        const data = testData.assetPruned;
+        data.asset_details.assets[1].value_known = false;
         const workflowState = instance.getWorkflowState(data);
-        expect(workflowState.derived.assets_total_value).to.eql(3000);
+        expect(workflowState.derived.assets_total_value).to.eql(1000);
       });
 
       it('should allow nested functions', () => {
-        const data = testData.complete;
         const workflowState = instance.getWorkflowState(data);
-        expect(workflowState.derived.assets_total_adjusted).to.eql(1022000);
+        expect(workflowState.derived.assets_total_adjusted).to.eql(10011000);
       });
     });
 
     describe('section_states property', () => {
       it('should exist', () => {
-        const data = getDataMock('validations');
         const workflowState = instance.getWorkflowState(data);
         expect(workflowState.section_states).to.exist;
       });
 
       it('should include a validation error for basic missing required field', () => {
-        const data = getDataMock('validations');
         data.application_details.location = '';
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.application_details.validationMessages).to.contain({
@@ -126,7 +125,6 @@ describe('data-engine', () => {
       });
 
       it('should not include a validation error for basic present required field', () => {
-        const data = getDataMock('validations');
         data.application_details.location = 'London';
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.application_details.validationMessages).not.to.contain({
@@ -136,7 +134,6 @@ describe('data-engine', () => {
       });
 
       it('should not include a validation error for basic required field if ancestral precondition not met', () => {
-        const data = getDataMock('validations');
         data.personal_details.is_anonymous = true;
         data.personal_details.name = undefined;
         const { section_states } = instance.getWorkflowState(data);
@@ -147,7 +144,6 @@ describe('data-engine', () => {
       });
 
       it('should include a validation message for missing required field when preconditions are met', () => {
-        const data = getDataMock('validations');
         data.asset_details.assets[0].value = undefined;
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.asset_details.validationMessages).to.contain({
@@ -157,7 +153,6 @@ describe('data-engine', () => {
       })
 
       it('should include a validation message for a missing required array', () => {
-        const data = getDataMock('validations');
         data.personal_details.contact_numbers = undefined;
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).to.contain({
@@ -167,7 +162,6 @@ describe('data-engine', () => {
       });
 
       it('should include a validation message for an empty required array', () => {
-        const data = getDataMock('validations');
         data.personal_details.contact_numbers = [];
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).to.contain({
@@ -177,7 +171,6 @@ describe('data-engine', () => {
       });
 
       it('should include a validation message for an array with one blank string', () => {
-        const data = getDataMock('validations');
         data.personal_details.contact_numbers = [''];
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).to.contain({
@@ -187,7 +180,6 @@ describe('data-engine', () => {
       });
 
       it('should include a validation message if array_value validation fails', () => {
-        const data = getDataMock('validations');
         data.personal_details.contact_numbers = ['1234'];
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).to.contain({
@@ -197,7 +189,6 @@ describe('data-engine', () => {
       });
 
       it('should include a validation message for both array level and element level failures', () => {
-        const data = getDataMock('validations');
         data.personal_details.contact_numbers = ['a'];
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).to.contain({
@@ -211,13 +202,11 @@ describe('data-engine', () => {
       });
 
       it('should not include a validation message for valid array_value', () => {
-        const data = getDataMock('validations');
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).to.eql([]);
       });
 
       it('should not include a validation message for an array with a 0', () => {
-        const data = getDataMock('validations');
         data.personal_details.contact_numbers = [0];
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).not.to.contain({
@@ -227,7 +216,6 @@ describe('data-engine', () => {
       });
 
       it('should not include a validation message for an array with false', () => {
-        const data = getDataMock('validations');
         data.personal_details.contact_numbers = [false];
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).not.to.contain({
@@ -237,7 +225,6 @@ describe('data-engine', () => {
       });
 
       it('should include a validation message for a required property which is descendant of array_group', () => {
-        const data = getDataMock('validations');
         data.asset_details.assets[0].description = '';
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.asset_details.validationMessages).to.contain({
@@ -247,7 +234,6 @@ describe('data-engine', () => {
       });
 
       it('should not include a validation message for a required property which is descendant of array_group if non-required ancestor is absent', () => {
-        const data = getDataMock('validations');
         data.previous_applications.items[0].comments = undefined;
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.previous_applications.validationMessages).not.to.contain({
@@ -258,7 +244,6 @@ describe('data-engine', () => {
 
       // custom validations
       it('should include a message for a custom validation failure if field is present', () => {
-        const data = getDataMock('validations');
         data.asset_details.assets[0].value = 'nan';
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.asset_details.validationMessages).to.contain({
@@ -268,7 +253,6 @@ describe('data-engine', () => {
       });
 
       it('should include a message for a custom validation failure if field is present but not required', () => {
-        const data = getDataMock('validations');
         data.personal_details.name.first = 'a';
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).to.contain({
@@ -278,7 +262,6 @@ describe('data-engine', () => {
       });
 
       it('should not include a message for a custom validation failure if field is not present', () => {
-        const data = getDataMock('validations');
         data.personal_details.name.first = undefined;
         const { section_states } = instance.getWorkflowState(data);
         expect(section_states.personal_details.validationMessages).not.to.contain({
@@ -294,21 +277,18 @@ describe('data-engine', () => {
       });
 
       it('should set the status of START edges to "active"', () => {
-        const data = getDataMock('validations');
         const { edge_states } = instance.getWorkflowState(data);
         const startEdge = find(edge_states, {from: 'START'});
         expect(startEdge.status).to.eql('active');
       });
 
       it('should set the status of edges from a valid section to "active"', () => {
-        const data = getDataMock('validations');
         const { edge_states } = instance.getWorkflowState(data);
         const edgeFromApplicationDetails = find(edge_states, {from: 'application_details'});
         expect(edgeFromApplicationDetails.status).to.eql('active');
       });
 
       it('should set the status of edges from an invalid section to "inactive"', () => {
-        const data = getDataMock('validations');
         data.application_details.location = '';
         const { edge_states } = instance.getWorkflowState(data);
         const edgeFromApplicationDetails = find(edge_states, {from: 'application_details'});
@@ -316,7 +296,6 @@ describe('data-engine', () => {
       });
 
       it('should set the status of edges from an valid section to "inactive" if there is no valid path to that section', () => {
-        const data = getDataMock('validations');
         const { edge_states: edgeStatesBefore } = instance.getWorkflowState(data);
         let edgeFromApplicationDetails = find(edgeStatesBefore, {from: 'application_details'});
         let edgeFromPersonalDetails = find(edgeStatesBefore, {from: 'personal_details'});
@@ -331,14 +310,12 @@ describe('data-engine', () => {
       });
 
       it('should set the status of edge from truth decision to "active" when output is true', () => {
-        const data = getDataMock('validations');
         const { edge_states } = instance.getWorkflowState(data);
         const decisionTrueEdge = find(edge_states, {from: 'meets_premium_requirements', when_input_is: true});
         expect(decisionTrueEdge.status).to.eql('active');
       });
 
       it('should set the status of edge from truth decision to "inactive" when output is false', () => {
-        const data = getDataMock('validations');
         data.asset_details.assets[0].value = 1;
         data.asset_details.assets[1].value = 1;
         const { edge_states } = instance.getWorkflowState(data);
@@ -347,7 +324,6 @@ describe('data-engine', () => {
       });
 
       it('should set the status of edge from false decision to "active" when output is false', () => {
-        const data = getDataMock('validations');
         data.asset_details.assets[0].value = 1;
         data.asset_details.assets[1].value = 1;
         const { edge_states } = instance.getWorkflowState(data);
@@ -356,14 +332,12 @@ describe('data-engine', () => {
       });
 
       it('should set the status of edge from false decision to "inactive" when output is true', () => {
-        const data = getDataMock('validations');
         const { edge_states } = instance.getWorkflowState(data);
         const decisionFalseEdge = find(edge_states, {from: 'meets_premium_requirements', when_input_is: false});
         expect(decisionFalseEdge.status).to.eql('inactive');
       });
 
       it('should set the status of edge from decision to "inactive" if node is unreachable', () => {
-        const data = getDataMock('validations');
         data.asset_details.assets = undefined; // break the pathway to the decision node
         const { edge_states } = instance.getWorkflowState(data);
         const decisionFalseEdge = find(edge_states, {from: 'meets_premium_requirements', when_input_is: false});
@@ -374,11 +348,9 @@ describe('data-engine', () => {
 
   describe('nextSection method', () => {
     let instance;
-    let data;
 
     beforeEach(() => {
       instance = DataEngine.create(testConfig);
-      data = getDataMock('validations');
     });
 
     it('should exist', () => {
@@ -430,11 +402,9 @@ describe('data-engine', () => {
 
   describe('previousSection method', () => {
     let instance;
-    let data;
 
     beforeEach(() => {
       instance = DataEngine.create(testConfig);
-      data = getDataMock('validations');
     });
 
     it('should exist', () => {
@@ -472,11 +442,9 @@ describe('data-engine', () => {
 
   describe('isSectionReachable method', () => {
     let instance;
-    let data;
 
     beforeEach(() => {
       instance = DataEngine.create(testConfig);
-      data = getDataMock('validations');
     });
 
     it('should exist', () => {

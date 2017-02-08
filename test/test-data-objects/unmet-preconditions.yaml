@@ -1,9 +1,0 @@
-personal_details:
-  name:
-    title: mr
-  doctor_type: general
-asset_details:
-  assets:
-  - value: 10000
-    value_known: true
-  - value: 2000

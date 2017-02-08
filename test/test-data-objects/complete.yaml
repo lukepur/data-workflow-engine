@@ -1,22 +1,44 @@
+application_details:
+  location: London
+
 personal_details:
+  is_anonymous: false
   name:
-    title: mr
-    first: John
-    last: Wick
+    title: dr
+    first: Jane
+    last: Brown
+  doctor_type: physicist
+  contact_numbers:
+  - 123
+  - 456
+
 asset_details:
   assets:
-  - value: 10000
-    value_known: true
-    description: Antique crossbow
-  - value: 2000
-    value_known: true
-    description: $2000 gift voucher for Lidl
-  - value: 1000000
-    value_known: true
+  - value_known: true
+    value: 1000
+    description: Car
+  - value_known: true
+    value: 10000000
     description: House
+
 liability_details:
   liabilities:
-  - value: 4000
+  - value: 5000
     description: Credit card
+
+previous_applications:
+  has_previous_applications: true
+  items:
+  - status: rejected
+    comments:
+    - author: Bob
+      message: Something does not look right - escalating
+    - author: Jane
+      message: Good spot Bob - rejecting
+  - status: approved
+    comments:
+    - author: Jane
+      message: Looks good
+
 premium_enrollment:
   accept: true
