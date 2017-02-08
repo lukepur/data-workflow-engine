@@ -4,7 +4,7 @@
       <div class="row">
         <div class="full column">
           <div class="header-main">
-            <h1>Data Workflow Engine</h1>
+            <h1>Data Workflow Engine <span class="quiet">v{{ engineVersion }}</span></h1>
             <router-link to="/configure-engine" class="button">Configure</router-link>
           </div>
           <div class="header-engine-status">
@@ -19,11 +19,14 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import enginePackage from 'data-workflow-engine/package.json';
 
 export default {
   name: 'app-header',
   data () {
-    return {};
+    return {
+      engineVersion: enginePackage.version
+    };
   },
   computed: {
     ...mapGetters({
@@ -68,5 +71,10 @@ h1 {
 
 .engine-status-value.unconfigured {
   color: red;
+}
+
+.quiet {
+  opacity: 0.4;
+  font-size: 30%;
 }
 </style>
