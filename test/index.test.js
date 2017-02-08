@@ -141,6 +141,16 @@ describe('data-engine', () => {
         });
       });
 
+      it('should include a validation message for missing required field when preconditions are met', () => {
+        const data = getDataMock('validations');
+        data.asset_details.assets[0].value = undefined;
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.asset_details.validationMessages).to.contain({
+          path: 'asset_details.assets.0.value',
+          message: 'Asset value is required'
+        });
+      })
+
       it('should include a validation message for a missing required array', () => {
         const data = getDataMock('validations');
         data.personal_details.contact_numbers = undefined;

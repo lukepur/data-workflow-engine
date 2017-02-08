@@ -204,6 +204,9 @@ function pruneData(data, config, depOrder, context) {
 }
 
 function evaluatePreconditions(config, configPath, data, context, dataPath) {
+  if (typeof dataPath === 'string') {
+    dataPath = dataPath.split('.');
+  }
   const configNode = config.getConfigNodeByPath(configPath);
   if (!configNode) {
     return true;
@@ -445,6 +448,9 @@ function isBlank(value) {
 }
 
 function resolveRequiredMessage(requiredNode, data, context, path) {
+  if (typeof path === 'string') {
+    path = path.split('.');
+  }
   let resolvedRequired = resolve(requiredNode, data, context, path);
   if (Array.isArray(resolvedRequired)) {
     resolvedRequired = resolvedRequired.reduce((memo, result, index) => {
