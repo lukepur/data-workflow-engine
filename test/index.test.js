@@ -269,6 +269,12 @@ describe('data-engine', () => {
           message: 'First name must be at least 2 characters long'
         });
       });
+
+      it('should set unreachable section status', () => {
+        data.asset_details.assets[0].value = undefined;
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.liability_details.status).to.eql('unreachable');
+      });
     });
 
     describe('edge_states', () => {

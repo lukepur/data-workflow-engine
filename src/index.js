@@ -42,7 +42,8 @@ DataEngine.prototype.getWorkflowState = function (data) {
   const prunedData = pruneData(data, this.getConfig(), this.getPreconditionOrder(), this.getContext());
   const sectionStates = evaluateSectionStates(prunedData, this.getConfig(), this.getContext());
   const edgeStates = evaluateEdgeStates(prunedData, this.getConfig(), this.getContext(), sectionStates);
-  const finalData = removeUnreachableSections(prunedData, edgeStates);
+  const finalData = removeUnreachableSectionData(prunedData, edgeStates);
+  const finalSectionStates = updateUnreachableSections(sectionStates, edgeStates);
   return {
     data: finalData,
     mapped_data: applyDataMappings(finalData, this.getConfig()),
@@ -118,11 +119,22 @@ DataEngine.prototype.previousSection = function (currentSectionId, data) {
   };
 }
 
-function removeUnreachableSections(data, edge_states) {
+function removeUnreachableSectionData(data, edge_states) {
   return reduce(data, (memo, item, sectionId) => {
     if (_isSectionReachable(edge_states, sectionId)) {
       memo[sectionId] = item;
     }
+    return memo;
+  }, {});
+}
+
+function updateUnreachableSections(sections, edge_states) {
+  const _sections = Object.assign({}, sections);
+  return reduce(_sections, (memo, section, sectionId) => {
+    if (!_isSectionReachable(edge_states, sectionId)) {
+      section.status = 'unreachable';
+    }
+    memo[sectionId] = section;
     return memo;
   }, {});
 }
