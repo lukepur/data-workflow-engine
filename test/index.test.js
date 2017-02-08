@@ -333,6 +333,158 @@ describe('data-engine', () => {
       });
     });
   });
+
+  describe('nextSection method', () => {
+    let instance;
+    let data;
+
+    beforeEach(() => {
+      instance = DataEngine.create(testConfig);
+      data = getDataMock('validations');
+    });
+
+    it('should exist', () => {
+      expect(instance.nextSection).to.be.a('function');
+    });
+
+    it('should return the first section if the currentSectionId is START', () => {
+      expect(instance.nextSection('START', data)).to.eql({sectionId: 'application_details'});
+    });
+
+    it('should return null if the currentSectionId is END', () => {
+      expect(instance.nextSection('END', data)).to.eql(null);
+    });
+
+    it('should return the next section if the current section is reachable and valid', () => {
+      expect(instance.nextSection('application_details', data)).to.eql({sectionId: 'personal_details'});
+    });
+
+    it('should return the next section even if that section is "valid" by default (e.g. no required fields)', () => {
+      expect(instance.nextSection('premium_enrollment', data)).to.eql({sectionId: 'final_notes'});
+    });
+
+    it('should return the same sectionId with validationMessages if the current section is reachable but invalid', () => {
+      data.application_details.location = undefined;
+      expect(instance.nextSection('application_details', data)).to.eql({
+        sectionId: 'application_details',
+        validationMessages: [{
+          path: 'application_details.location',
+          message: 'Location of application is required'
+        }]
+      });
+    });
+
+    it('should return the last reachable sectionId with validationMessages if the current section is unreachable', () => {
+      data.application_details.location = undefined;
+      expect(instance.nextSection('asset_details', data)).to.eql({
+        sectionId: 'application_details',
+        validationMessages: [{
+          path: 'application_details.location',
+          message: 'Location of application is required'
+        }]
+      });
+    });
+
+    it('should return END if the next section is END', () => {
+      expect(instance.nextSection('final_notes', data)).to.eql({ sectionId: 'END' });
+    });
+  });
+
+  describe('previousSection method', () => {
+    let instance;
+    let data;
+
+    beforeEach(() => {
+      instance = DataEngine.create(testConfig);
+      data = getDataMock('validations');
+    });
+
+    it('should exist', () => {
+      expect(instance.previousSection).to.be.a('function');
+    });
+
+    it('should return null if the currentSectionId is START', () => {
+      expect(instance.previousSection('START', data)).to.eql(null);
+    });
+
+    it('should return START if the currentSectionId is first_section', () => {
+      expect(instance.previousSection('application_details', data)).to.eql({sectionId: 'START'});
+    });
+
+    it('should return the previous section if the current section is reachable and valid', () => {
+      expect(instance.previousSection('personal_details', data)).to.eql({sectionId: 'application_details'});
+    });
+
+    it('should return the previous section if the current section is reachable but invalid', () => {
+      data.personal_details.name.title = undefined;
+      expect(instance.previousSection('personal_details', data)).to.eql({ sectionId: 'application_details' });
+    });
+
+    it('should return the last reachable sectionId with validationMessages if the current section is unreachable', () => {
+      data.application_details.location = undefined;
+      expect(instance.previousSection('asset_details', data)).to.eql({
+        sectionId: 'application_details',
+        validationMessages: [{
+          path: 'application_details.location',
+          message: 'Location of application is required'
+        }]
+      });
+    });
+  });
+
+  describe('isSectionReachable method', () => {
+    let instance;
+    let data;
+
+    beforeEach(() => {
+      instance = DataEngine.create(testConfig);
+      data = getDataMock('validations');
+    });
+
+    it('should exist', () => {
+      expect(instance.isSectionReachable).to.be.a('function');
+    });
+
+    it('should return true for START', () => {
+      expect(instance.isSectionReachable('START', data)).to.be.true;
+    });
+
+    it('should return true for reachable sections', () => {
+      expect(instance.isSectionReachable('application_details', data)).to.be.true;
+      expect(instance.isSectionReachable('personal_details', data)).to.be.true;
+      expect(instance.isSectionReachable('asset_details', data)).to.be.true;
+      expect(instance.isSectionReachable('liability_details', data)).to.be.true;
+      expect(instance.isSectionReachable('previous_applications', data)).to.be.true;
+      expect(instance.isSectionReachable('premium_enrollment', data)).to.be.true;
+      expect(instance.isSectionReachable('final_notes', data)).to.be.true;
+      expect(instance.isSectionReachable('END', data)).to.be.true;
+    });
+
+    it('should return false for sections excluded by decisions', () =>{
+      data.asset_details.assets[0].value = 1;
+      data.asset_details.assets[1].value = 1;
+      expect(instance.isSectionReachable('application_details', data)).to.be.true;
+      expect(instance.isSectionReachable('personal_details', data)).to.be.true;
+      expect(instance.isSectionReachable('asset_details', data)).to.be.true;
+      expect(instance.isSectionReachable('liability_details', data)).to.be.true;
+      expect(instance.isSectionReachable('previous_applications', data)).to.be.true;
+      expect(instance.isSectionReachable('premium_enrollment', data)).to.be.false;
+      expect(instance.isSectionReachable('final_notes', data)).to.be.true;
+      expect(instance.isSectionReachable('END', data)).to.be.true;
+    });
+
+    it('should return false for sections excluded by previous section validation failures', () => {
+      data.personal_details.name.title = '';
+      expect(instance.isSectionReachable('application_details', data)).to.be.true;
+      expect(instance.isSectionReachable('personal_details', data)).to.be.true;
+      expect(instance.isSectionReachable('asset_details', data)).to.be.false;
+      expect(instance.isSectionReachable('liability_details', data)).to.be.false;
+      expect(instance.isSectionReachable('previous_applications', data)).to.be.false;
+      expect(instance.isSectionReachable('premium_enrollment', data)).to.be.false;
+      expect(instance.isSectionReachable('final_notes', data)).to.be.false
+      expect(instance.isSectionReachable('END', data)).to.be.false;
+    });
+  });
 });
 
 function getDataMock(type) {

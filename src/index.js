@@ -48,6 +48,111 @@ DataEngine.prototype.getWorkflowState = function (data) {
   };
 };
 
+DataEngine.prototype.isSectionReachable = function (requestedSectionId, data) {
+  const { edge_states } = this.getWorkflowState(data);
+  return _isSectionReachable(edge_states, requestedSectionId);
+}
+
+DataEngine.prototype.nextSection = function (currentSectionId, data) {
+  const { section_states, edge_states } = this.getWorkflowState(data);
+  // Case: first section from start
+  if (currentSectionId === 'START') {
+    return {
+      sectionId: find(edge_states, {from: 'START'}).to
+    };
+  }
+  // Case: currentSectionId is END
+  if (currentSectionId === 'END') {
+    return null;
+  }
+  if (_isSectionReachable(edge_states, currentSectionId)) {
+    // Case: currentSectionId is reachable and valid
+    if (_isSectionValid(section_states, currentSectionId)) {
+      return {
+        sectionId: _nextSection(edge_states, currentSectionId)
+      };
+    }
+
+    // Case: currentSectionId is reachable and invalid
+    return {
+      sectionId: currentSectionId,
+      validationMessages: section_states[currentSectionId].validationMessages
+    };
+  }
+
+  // Case: currentSectionId is unreachable - return furthest reachable section
+  const frontier = getFrontier(edge_states);
+  return {
+    sectionId: frontier.to,
+    validationMessages: section_states[frontier.to].validationMessages
+  };
+}
+
+DataEngine.prototype.previousSection = function (currentSectionId, data) {
+  const { section_states, edge_states } = this.getWorkflowState(data);
+  // Case: currentSectionId is START
+  if (currentSectionId === 'START') {
+    return null;
+  }
+  // Case: current section is first section
+  if (find(edge_states, {from: 'START', to: currentSectionId, status: 'active'})) {
+    return {
+      sectionId: 'START'
+    };
+  }
+  // Case: current sectin is reachable - go back
+  if (_isSectionReachable(edge_states, currentSectionId)) {
+    return {
+      sectionId: _previousSection(edge_states, currentSectionId)
+    }
+  }
+  // Case: currentSectionId is unreachable - return furthest reachable section
+  const frontier = getFrontier(edge_states);
+  return {
+    sectionId: frontier.to,
+    validationMessages: section_states[frontier.to].validationMessages
+  };
+}
+
+function _isSectionReachable(edge_states, requestedSectionId) {
+  return !!find(edge_states, {to: requestedSectionId, status: 'active'}) || requestedSectionId === 'START';
+}
+
+function _isSectionValid(section_states, requestedSectionId) {
+  return section_states[requestedSectionId].status === 'valid';
+}
+
+function _nextSection(edge_states, currentSectionId) {
+  const nextSection = find(edge_states, {from: currentSectionId, status: 'active'});
+  if (nextSection) {
+    if (nextSection.toType === 'section' || nextSection.to === 'END') {
+      return nextSection.to;
+    }
+    return _nextSection(edge_states, nextSection.to);
+  }
+  return null;
+}
+
+function _previousSection(edge_states, currentSectionId) {
+  const previousSection = find(edge_states, {to: currentSectionId, status: 'active'});
+  if (previousSection) {
+    if (previousSection.fromType === 'section' || previousSection.from === 'START') {
+      return previousSection.from;
+    }
+    return _previousSection(edge_states, previousSection.from);
+  }
+  return null;
+}
+
+function getFrontier(edge_states) {
+  let edge = find(edge_states, {from: 'START', status: 'active'});
+  let nextEdge;
+  while (nextEdge = find(edge_states, {from: edge.to, status: 'active'}) && nextEdge.to !== 'END') {
+    edge = nextEdge;
+  }
+  return edge;
+}
+
 function orderPreconditions(config) {
   const { sections, edges } = config;
   const deps = [];
@@ -195,6 +300,7 @@ function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates)
   return edges.map(edge => {
     let status = nodeStatuses[edge.from];
     const fromNode = (config.getConfigNodeByPath('$.' + edge.from) || {});
+    const toNode = (config.getConfigNodeByPath('$.' + edge.to) || {});
     // handle edges from decision nodes
     if (fromNode.type === 'decision' && status !== 'inactive') {
       status = (status ?
@@ -203,7 +309,9 @@ function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates)
       );
     }
     return Object.assign({}, edge, {
-      status
+      status,
+      fromType: fromNode.type,
+      toType: toNode.type
     });
   });
 }

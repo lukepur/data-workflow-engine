@@ -94,6 +94,57 @@ Returns an object with the following shape:
 }
 ```
 
+#### `nextSection(currentSectionId, dataInstanceObject)`
+
+**Usage:** `engine.nextSection(currentSectionId, dataInstanceObject)`
+
+Returns an object representing the next `section` node that should be visited in
+the workflow:
+
+```
+{
+  sectionId: id_of_next_section,
+  validationMessages: [{path: path.to.target, message: message}]
+}
+```
+
+The next `section` will be determined according to the following rules:
+
+- If the current section is reachable by active edges *and* is valid, the next section
+  will be determined by the next active edge(s) which point to that section
+- If the current section is reachable by active edges *and* is invalid, the same
+  section's id will be returned, indicating the section needs to be made valid before
+  the next section can be reached. In this case, the return object will also have a
+  `validationMessages` property
+- If the current section is unreachable by active edges, then the last reachable section's
+  id will be returned, and any applicable `validationMessages`
+
+#### `previousSection(currentSectionId, dataInstanceObject)`
+
+**Usage:** `engine.previousSection(currentSectionId, dataInstanceObject)`
+
+Returns an object representing the previous `section` in the workflow tree:
+
+```
+{
+  sectionId: id_of_previous_section
+}
+```
+
+The previous `section` will be determined according to the following rules:
+
+- If the current section is reachable by active edges, the previous section
+  will be determined by the previous active edge(s) which point from that section
+- If the current section is unreachable by active edges, then the last reachable section's
+  id will be returned
+
+#### `isSectionReachable(requestedSectionId, dataInstanceObject)`
+
+**Usage:** `engine.isSectionReachable(requestedSectionId, dataInstanceObject)`
+
+Return a boolean determining whether `requestedSectionId` is reachable for the
+given `dataInstanceObject`
+
 ## Example configuration
 
 See the file [`test/test-configuration.yaml`](test/test-configuration.yaml) for an up-to-date example of how to configure a workflow.

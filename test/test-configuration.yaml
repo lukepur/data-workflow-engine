@@ -149,6 +149,11 @@ sections:
     type: value
     required: Please indicate whether you accept enrollment in our premium borrower program
 
+- id: final_notes
+  type: section
+  children:
+  - id: optional_comments
+    type: value
 
 decisions:
 - id: meets_premium_requirements
@@ -181,6 +186,8 @@ edges:
   to: END
   when_input_is: false
 - from: premium_enrollment
+  to: final_notes
+- from: final_notes
   to: END
 
 
