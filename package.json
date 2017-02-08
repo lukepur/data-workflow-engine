@@ -12,7 +12,8 @@
     "lint": "eslint --ext .js,.vue src test/unit",
     "test": "karma start karma.conf.js",
     "build": "cross-env NODE_ENV=production browserify -g envify -p [ vueify/plugins/extract-css -o dist/build.css ] -e src/main.js | uglifyjs -c warnings=false -m > dist/build.js",
-    "publish:pages": "npm run build && git add . && git commit"
+    "publish:pages": "npm run build && git add . && git commit",
+    "update:engine": "npm uninstall -S data-workflow-engine && npm install -S data-workflow-engine"
   },
   "browserify": {
     "transform": [
@@ -22,7 +23,7 @@
     ]
   },
   "dependencies": {
-    "data-workflow-engine": "0.0.7",
+    "data-workflow-engine": "0.0.8",
     "js-yaml": "^3.7.0",
     "vue": "^2.0.1",
     "vue-router": "^2.2.0",
