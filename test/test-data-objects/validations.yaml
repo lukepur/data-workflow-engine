@@ -27,6 +27,7 @@ liability_details:
     description: Credit card
 
 previous_applications:
+  has_previous_applications: true
   items:
   - status: rejected
     comments:
@@ -34,6 +35,10 @@ previous_applications:
       message: Something does not look right - escalating
     - author: Jane
       message: Good spot Bob - rejecting
+  - status: approved
+    comments:
+    - author: Jane
+      message: Looks good
 
 premium_enrollment:
   accept: true

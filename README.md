@@ -61,6 +61,52 @@ The following special characters can be used in paths:
 - `*`: selects all array items at this level in the path. Note, can be used more than once in a path, and items from other path branches will be included
 - `^`: selects the array index that matches the instance index of this node. Useful, for example, to select sibling values
 
+### Data mapping
+
+If a different structure of the data returned by the `getWorkflowState` method is
+required, the `data_mapping` property can be used to specify what a `value`, `array_value`
+or `array_group` node's value is bound to in the data object.
+
+For example, consider the following configuration snippet:
+
+```
+{
+  id: name,
+  type: group
+  children: [
+    {
+      id: title,
+      type: value
+      data_mapping: title
+    }
+  ]
+}
+```
+
+By default, the `data` property returned in the response of `getWorkflowState`
+would assign a title value as follows:
+
+```
+{
+  name: {
+    title: 'miss'
+  }
+}
+```
+
+But with the above `data_mapping: title` configuration, the value of title would
+be assigned directly to a root (or relative to any array ancestor paths) property
+of 'title':
+
+```
+{
+  title: 'miss'
+}
+```
+
+Note that `data_mapping` only applies to the output data - all refs in `func_ref`s
+must use the full (unmapped) data path.
+
 ## Data Engine API
 
 To get started, create a Data Engine instance:

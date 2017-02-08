@@ -9,7 +9,8 @@ const {
   getDataPathsForRefPath,
   getRefPathForDataPath,
   getParentConfigNodePath,
-  getParentDataPath
+  getParentDataPath,
+  getMappedPath
 } = require('./util/path-utils');
 const defaultContext = require('./context/context');
 
@@ -41,7 +42,7 @@ DataEngine.prototype.getWorkflowState = function (data) {
   const prunedData = pruneData(data, this.getConfig(), this.getPreconditionOrder(), this.getContext());
   const sectionStates = evaluateSectionStates(prunedData, this.getConfig(), this.getContext());
   return {
-    data: prunedData,
+    data: applyDataMappings(prunedData, this.getConfig()),
     derived: evaluateDerived(prunedData, this.getConfig().derived, this.getContext()),
     section_states: sectionStates,
     edge_states: evaluateEdgeStates(prunedData, this.getConfig(), this.getContext(), sectionStates)
@@ -151,6 +152,17 @@ function getFrontier(edge_states) {
     edge = nextEdge;
   }
   return edge;
+}
+
+function applyDataMappings(data, config) {
+  const result = {};
+  traverse(data).forEach(function (node) {
+    if (this.isLeaf) {
+      const mappedPath = getMappedPath(this.path, config);
+      set(result, mappedPath, node);
+    }
+  })
+  return result;
 }
 
 function orderPreconditions(config) {

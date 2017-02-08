@@ -103,6 +103,7 @@ sections:
     children:
     - id: value
       type: value
+      data_mapping: liability_value
       required: Liability value is required
       validations:
       - fn: isNumber
@@ -126,8 +127,12 @@ sections:
 - id: previous_applications
   type: section
   children:
+  - id: has_previous_applications
+    type: value
+    data_mapping: previous_applications_exist
   - id: items
     type: array_group
+    data_mapping: previous_applications
     children:
     - id: status
       type: value
@@ -138,6 +143,7 @@ sections:
       - id: author
         type: value
         required: Author of comment is required
+        data_mapping: comment_author
       - id: message
         type: value
         required: Comment message is required
