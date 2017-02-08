@@ -60,18 +60,23 @@ describe('data-engine', () => {
           data = getDataMock('validations');
         });
 
+        it('should add a `mapped_data` property to state object', () => {
+          const { mapped_data: result } = instance.getWorkflowState(data);
+          expect(result).to.exist;
+        });
+
         it('should map a static field to specified root property', () => {
-          const { data: result } = instance.getWorkflowState(data);
+          const { mapped_data: result } = instance.getWorkflowState(data);
           expect(result.previous_applications_exist).to.be.true;
         });
 
         it('should map an array descendant relative to unmapped array', () => {
-          const { data: result } = instance.getWorkflowState(data);
+          const { mapped_data: result } = instance.getWorkflowState(data);
           expect(result.liability_details.liabilities[0].liability_value).to.eql(5000);
         });
 
         it('should map all levels of a deep value in an array', () => {
-          const { data: result } = instance.getWorkflowState(data);
+          const { mapped_data: result } = instance.getWorkflowState(data);
           expect(result.previous_applications[0].comments[0].comment_author).to.eql('Bob');
         });
       });

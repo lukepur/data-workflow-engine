@@ -65,7 +65,9 @@ The following special characters can be used in paths:
 
 If a different structure of the data returned by the `getWorkflowState` method is
 required, the `data_mapping` property can be used to specify what a `value`, `array_value`
-or `array_group` node's value is bound to in the data object.
+or `array_group` node's value is bound to in the `mapped_data` object. The `mapped_data` object
+is included in addition to the `data` property which maintains the hierarchy defined in the
+configuration.
 
 For example, consider the following configuration snippet:
 
@@ -95,8 +97,8 @@ would assign a title value as follows:
 ```
 
 But with the above `data_mapping: title` configuration, the value of title would
-be assigned directly to a root (or relative to any array ancestor paths) property
-of 'title':
+be assigned directly to the root (or relative to any array ancestor paths) property
+of 'title' in the `mapped_data` object:
 
 ```
 {

@@ -42,7 +42,8 @@ DataEngine.prototype.getWorkflowState = function (data) {
   const prunedData = pruneData(data, this.getConfig(), this.getPreconditionOrder(), this.getContext());
   const sectionStates = evaluateSectionStates(prunedData, this.getConfig(), this.getContext());
   return {
-    data: applyDataMappings(prunedData, this.getConfig()),
+    data: prunedData,
+    mapped_data: applyDataMappings(prunedData, this.getConfig()),
     derived: evaluateDerived(prunedData, this.getConfig().derived, this.getContext()),
     section_states: sectionStates,
     edge_states: evaluateEdgeStates(prunedData, this.getConfig(), this.getContext(), sectionStates)
