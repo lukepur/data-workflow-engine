@@ -1,7 +1,36 @@
 const traverse = require('traverse');
+const { cloneDeep } = require('lodash');
 
-function create(config) {
+const TOP_LEVEL_PROPS = [
+  'sections',
+  'decisions',
+  'edges',
+  'derived'
+];
+
+const SECTION_PROPS = [
+  'id',
+  'type',
+  'children',
+  'preconditions',
+  'required',
+  'validations',
+  'item_validations',
+  'data_mapping',
+  'fn',
+  'args',
+  'message',
+  'path'
+];
+
+function create(c) {
   var map = {};
+  const config = TOP_LEVEL_PROPS.reduce((memo, prop) => {
+    memo[prop] = cloneDeep(c[prop]);
+    return memo;
+  }, {});
+
+
   traverse(config.sections).forEach(applyPathsFn(map));
   traverse(config.decisions).forEach(applyPathsFn(map, 'decision'));
 
@@ -25,6 +54,9 @@ function applyPathsFn(map, type) {
       ));
       // Add map reference for fast lookup of this node by path
       map[path] = Object.assign({}, node, { type: node.type || type });
+    } else if (this.key && type !== 'decision' && SECTION_PROPS.indexOf(this.key) === -1 && isNaN(this.key)) {
+      // remove unknown property
+      this.remove();
     }
   }
 }

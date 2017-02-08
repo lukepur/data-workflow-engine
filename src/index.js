@@ -334,6 +334,7 @@ function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates)
       memo[nodePath] = resolve(node.output, data, context, null);
       return memo;
     }
+    return memo;
   }, {});
 
   return edges.map(edge => {

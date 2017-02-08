@@ -62,6 +62,15 @@ describe('data-engine', () => {
         expect(result.liability_details).not.to.exist;
       });
 
+      it('should remove section excluded by decision', () => {
+        let { data: result } = instance.getWorkflowState(data);
+        expect(result.premium_enrollment).to.exist;
+        data.asset_details.assets[0].value = 1;
+        data.asset_details.assets[1].value = 1;
+        result = instance.getWorkflowState(data).data;
+        expect(result.premium_enrollment).not.to.exist;
+      });
+
       describe('data_mapping feature', () => {
 
         it('should add a `mapped_data` property to state object', () => {

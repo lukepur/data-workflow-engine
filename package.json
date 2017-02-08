@@ -1,6 +1,6 @@
 {
   "name": "data-workflow-engine",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "A data validation and state engine",
   "main": "dist/index.js",
   "repository": {
