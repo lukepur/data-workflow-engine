@@ -23,7 +23,7 @@
     ]
   },
   "dependencies": {
-    "data-workflow-engine": "0.0.8",
+    "data-workflow-engine": "0.0.9",
     "js-yaml": "^3.7.0",
     "vue": "^2.0.1",
     "vue-router": "^2.2.0",
