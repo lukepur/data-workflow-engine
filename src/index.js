@@ -86,7 +86,7 @@ DataEngine.prototype.nextSection = function (currentSectionId, data) {
   }
 
   // Case: currentSectionId is unreachable - return furthest reachable section
-  const frontier = getFrontier(edge_states);
+  const frontier = getFurthest(edge_states);
   return {
     sectionId: frontier.to,
     validationMessages: section_states[frontier.to].validationMessages
@@ -111,12 +111,42 @@ DataEngine.prototype.previousSection = function (currentSectionId, data) {
       sectionId: _previousSection(edge_states, currentSectionId)
     }
   }
-  // Case: currentSectionId is unreachable - return furthest reachable section
-  const frontier = getFrontier(edge_states);
+  // Case: currentSectionId is unreachable - return previous reachable section
+  const previousActiveSection = edgeSearch(
+    find(edge_states, {to: currentSectionId}),
+    'from',
+    'to',
+    edge => edge.status === 'active' && edge.toType === 'section',
+    edge_states
+  );
+  const previousActiveSectionId = previousActiveSection && previousActiveSection.to;
   return {
-    sectionId: frontier.to,
-    validationMessages: section_states[frontier.to].validationMessages
+    sectionId: previousActiveSectionId,
+    validationMessages: section_states[previousActiveSectionId].validationMessages
   };
+}
+
+function previousActiveSectionId(currentSectionId, edge_states) {
+  let previousSection = find(edge_states, {to: currentSectionId, status: 'active'});
+}
+
+// Depth first edge search
+function edgeSearch(_frontier, idProp, linkProp, activationFn, searchSpace) {
+  // ensure frontier is array
+  const frontier = (Array.isArray(_frontier) ? [..._frontier] : [_frontier]);
+  if (frontier.length === 0) {
+    return null;
+  }
+  for (let i = 0; i < frontier.length; i++) {
+    const candidate = frontier[i];
+    if (activationFn(candidate)) {
+      return candidate;
+    }
+  }
+  const nextLevel = frontier.reduce((memo, edge) => {
+    return memo.concat(find(searchSpace, {[linkProp]: edge[idProp]}));
+  }, []);
+  return edgeSearch(nextLevel, idProp, linkProp, activationFn, searchSpace);
 }
 
 function removeUnreachableSectionData(data, edge_states) {
@@ -169,11 +199,13 @@ function _previousSection(edge_states, currentSectionId) {
   return null;
 }
 
-function getFrontier(edge_states) {
+function getFurthest(edge_states) {
   let edge = find(edge_states, {from: 'START', status: 'active'});
-  let nextEdge;
-  while (nextEdge = find(edge_states, {from: edge.to, status: 'active'}) && nextEdge.to !== 'END') {
+  let nextEdge = find(edge_states, {from: edge.to, status: 'active'});
+  while (nextEdge && nextEdge.to !== 'END') {
+    const newNextEdge = find(edge_states, {from: edge.to, status: 'active'});
     edge = nextEdge;
+    nextEdge = newNextEdge;
   }
   return edge;
 }
@@ -309,14 +341,14 @@ function evaluateSectionStates(data = {}, config = {}, context = {}) {
 function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates) {
   const { edges } = config;
   const nodeEvaluationOrder = getNodeEvaluationOrder(edges);
-  let frontierFound = false;
+  let furthestFound = false;
   const nodeStatuses = nodeEvaluationOrder.reduce((memo, nodePath) => {
     if (isTerminalNodePath(nodePath)) {
       memo[nodePath] = 'active';
       return memo;
     }
     const node = config.getConfigNodeByPath('$.' + nodePath);
-    if (frontierFound) {
+    if (furthestFound) {
       memo[nodePath] = 'inactive';
       return memo;
     }
@@ -325,7 +357,7 @@ function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates)
         memo[nodePath] = 'active';
         return memo;
       } else {
-        frontierFound = true;
+        furthestFound = true;
         memo[nodePath] = 'inactive';
         return memo;
       }

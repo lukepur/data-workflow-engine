@@ -443,14 +443,12 @@ describe('data-engine', () => {
       expect(instance.previousSection('personal_details', data)).to.eql({ sectionId: 'application_details' });
     });
 
-    it('should return the last reachable sectionId with validationMessages if the current section is unreachable', () => {
-      data.application_details.location = undefined;
-      expect(instance.previousSection('asset_details', data)).to.eql({
-        sectionId: 'application_details',
-        validationMessages: [{
-          path: 'application_details.location',
-          message: 'Location of application is required'
-        }]
+    it('should return the last  previous reachable sectionId with validationMessages if the current section is unreachable', () => {
+      data.asset_details.assets[0].value = 1;
+      data.asset_details.assets[1].value = 1;
+      expect(instance.previousSection('premium_enrollment', data)).to.eql({
+        sectionId: 'previous_applications',
+        validationMessages: []
       });
     });
   });
