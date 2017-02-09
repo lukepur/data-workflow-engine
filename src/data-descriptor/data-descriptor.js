@@ -1,4 +1,5 @@
 const traverse = require('traverse');
+const toposort = require('toposort');
 const { cloneDeep } = require('lodash');
 
 const TOP_LEVEL_PROPS = [
@@ -26,7 +27,11 @@ const SECTION_PROPS = [
 function create(c) {
   var map = {};
   const config = TOP_LEVEL_PROPS.reduce((memo, prop) => {
-    memo[prop] = cloneDeep(c[prop]);
+    if (prop === 'edges') {
+      memo[prop] = sortEdges(cloneDeep(c[prop]));
+    } else {
+      memo[prop] = cloneDeep(c[prop]);
+    }
     return memo;
   }, {});
 
@@ -89,6 +94,39 @@ function buildIdPath(node, tail = []) {
   }
   return buildIdPath(node.parent, tail);
 }
+
+function sortEdges(edges) {
+  const edgeEvaluationOrder = getEdgeEvaluationOrder(edges);
+  edges.sort(function (a, b) {
+    const aToIndex = edgeEvaluationOrder.indexOf(a.to);
+    const aFromIndex = edgeEvaluationOrder.indexOf(a.from);
+    const bToIndex = edgeEvaluationOrder.indexOf(b.to);
+    const bFromIndex = edgeEvaluationOrder.indexOf(b.from);
+    if (aFromIndex < bFromIndex) {
+      return -1;
+    }
+    if (aFromIndex > bFromIndex) {
+      return 1;
+    }
+    if (aToIndex > bFromIndex) {
+      return -1;
+    }
+    if (aToIndex < bFromIndex) {
+      return 1;
+    }
+    return 0;
+  });
+  return edges;
+}
+
+function getEdgeEvaluationOrder(edges = []) {
+  const dependencies = [['END', 'START']]; // END depends on START
+  edges.forEach(edge => {
+    dependencies.push([edge.to, edge.from]);
+  });
+  return toposort(dependencies).reverse();
+}
+
 
 module.exports = {
   create

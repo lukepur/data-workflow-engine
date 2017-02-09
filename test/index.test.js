@@ -385,7 +385,7 @@ describe('data-engine', () => {
     });
 
     it('should return the next section even if that section is "valid" by default (e.g. no required fields)', () => {
-      expect(instance.nextSection('premium_enrollment', data)).to.eql({sectionId: 'final_notes'});
+      expect(instance.nextSection('recommend_us', data)).to.eql({sectionId: 'final_notes'});
     });
 
     it('should return the same sectionId with validationMessages if the current section is reachable but invalid', () => {
@@ -411,6 +411,15 @@ describe('data-engine', () => {
     });
 
     it('should return END if the next section is END', () => {
+      expect(instance.nextSection('final_notes', data)).to.eql({ sectionId: 'END' });
+    });
+
+    it('should return END when last section is reachable and active, even if there is empty section in the workflow', () => {
+      // exclude premium_enrollment
+      data.asset_details.assets[0].value = 1;
+      data.asset_details.assets[1].value = 1;
+      // make premium_enrollment invalid
+      data.premium_enrollment.accept = undefined;
       expect(instance.nextSection('final_notes', data)).to.eql({ sectionId: 'END' });
     });
   });
@@ -443,7 +452,7 @@ describe('data-engine', () => {
       expect(instance.previousSection('personal_details', data)).to.eql({ sectionId: 'application_details' });
     });
 
-    it('should return the last  previous reachable sectionId with validationMessages if the current section is unreachable', () => {
+    it('should return the last previous reachable sectionId with validationMessages if the current section is unreachable', () => {
       data.asset_details.assets[0].value = 1;
       data.asset_details.assets[1].value = 1;
       expect(instance.previousSection('premium_enrollment', data)).to.eql({

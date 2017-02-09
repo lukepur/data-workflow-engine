@@ -42,3 +42,6 @@ previous_applications:
 
 premium_enrollment:
   accept: true
+
+recommend_us:
+  agree: true

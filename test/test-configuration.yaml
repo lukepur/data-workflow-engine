@@ -155,6 +155,13 @@ sections:
     type: value
     required: Please indicate whether you accept enrollment in our premium borrower program
 
+- id: recommend_us
+  type: section
+  children:
+  - id: agree
+    type: value
+    required: Please let us know if you'd recommend us to your friends
+
 - id: final_notes
   type: section
   children:
@@ -170,6 +177,12 @@ decisions:
       args:
       - $.asset_details.assets.*.value
     - 30000
+- id: will_enrol_premium
+  output:
+    fn: equals
+    args:
+    - $.premium_enrollment.accept
+    - true
 
 
 edges:
@@ -189,9 +202,17 @@ edges:
   to: premium_enrollment
   when_input_is: true
 - from: meets_premium_requirements
-  to: END
+  to: final_notes
   when_input_is: false
 - from: premium_enrollment
+  to: will_enrol_premium
+- from: will_enrol_premium
+  to: recommend_us
+  when_input_is: true
+- from: will_enrol_premium
+  to: final_notes
+  when_input_is: false
+- from: recommend_us
   to: final_notes
 - from: final_notes
   to: END

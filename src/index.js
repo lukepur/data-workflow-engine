@@ -340,39 +340,28 @@ function evaluateSectionStates(data = {}, config = {}, context = {}) {
 
 function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates) {
   const { edges } = config;
-  const nodeEvaluationOrder = getNodeEvaluationOrder(edges);
-  let furthestFound = false;
-  const nodeStatuses = nodeEvaluationOrder.reduce((memo, nodePath) => {
-    if (isTerminalNodePath(nodePath)) {
-      memo[nodePath] = 'active';
-      return memo;
-    }
-    const node = config.getConfigNodeByPath('$.' + nodePath);
-    if (furthestFound) {
-      memo[nodePath] = 'inactive';
-      return memo;
-    }
-    if (node.type === 'section') {
-      if (sectionStates[node.id.replace('$.', '')].status === 'valid') {
-        memo[nodePath] = 'active';
-        return memo;
-      } else {
-        furthestFound = true;
-        memo[nodePath] = 'inactive';
-        return memo;
-      }
-    }
-    if (node.type === 'decision') {
-      memo[nodePath] = resolve(node.output, data, context, null);
-      return memo;
-    }
-    return memo;
-  }, {});
 
-  return edges.map(edge => {
-    let status = nodeStatuses[edge.from];
+  return edges.reduce((memo, edge) => {
+    let status;
+    const activePredescesor = find(memo, {to: edge.from, status: 'active'});
     const fromNode = (config.getConfigNodeByPath('$.' + edge.from) || {});
     const toNode = (config.getConfigNodeByPath('$.' + edge.to) || {});
+    if (isTerminalEdgePath(edge.from)) {
+      status = 'active';
+    } else if (activePredescesor) {
+      // can get to this node - is it active?
+      if (fromNode.type === 'section') {
+        if (sectionStates[edge.from].status === 'valid') {
+          status = 'active';
+        } else {
+          status = 'inactive';
+        }
+      } else if (fromNode.type === 'decision') {
+        status = resolve(fromNode.output, data, context, null);
+      }
+    } else {
+      status = 'inactive';
+    }
     // handle edges from decision nodes
     if (fromNode.type === 'decision' && status !== 'inactive') {
       status = (status ?
@@ -380,24 +369,17 @@ function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates)
         (edge.when_input_is ? 'inactive': 'active')
       );
     }
-    return Object.assign({}, edge, {
+    memo.push(Object.assign({}, edge, {
       status,
       fromType: fromNode.type,
       toType: toNode.type
-    });
-  });
+    }));
+    return memo;
+  }, []);
 }
 
-function isTerminalNodePath(path) {
+function isTerminalEdgePath(path) {
   return path === 'START' || path === 'END';
-}
-
-function getNodeEvaluationOrder(edges = []) {
-  const dependencies = [['END', 'START']]; // END depends on START
-  edges.forEach(edge => {
-    dependencies.push([edge.to, edge.from]);
-  });
-  return toposort(dependencies).reverse();
 }
 
 function applyRequiredValidationIfMissing(config, configPath, data, context, path, messageArr) {
