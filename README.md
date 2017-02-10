@@ -49,7 +49,7 @@ An `section` of a data instance can be in one of the following states:
 
 A `func_ref` is a descriptor for run-time computations against a data instance. A `func_ref` has the following properties:
 
-  - `name`: the name of the function to invoke. This must be a pre-configured method available on the `computation_context` used to configure the engine instance
+  - `fn`: the name of the function to invoke. This must be a pre-configured method available on the `computation_context` used to configure the engine instance
   - `args`: an array of arguments to pass into the function. The following special tokens can be used as items:
     - `$.<path>`: de-reference the value at `path` of the data instance. See [path resolving](#/path_resolving) for more details
     - `$value`: de-reference the value of the current node. Undefined if node `type` is not `value`
@@ -115,7 +115,7 @@ To get started, create a Data Engine instance:
 
 1. Import data-engine:
 ```
-const DataEngine = require('data-engine');
+const DataEngine = require('data-workflow-engine');
 ```
 2. Create a data engine instance:
 ```
