@@ -100,6 +100,46 @@ describe('resolver', () => {
     });
   });
 
+  describe('fnRef', () => {
+    it('should return a reference to the named context function', () => {
+      const resolvable = {
+        fnRef: 'oneArgFunc'
+      };
+      const result = resolver(resolvable, data, context, []);
+      expect(result).to.be.a('function');
+    });
+
+    it('should return a reference to a function returned by resolving a resolvable', () => {
+      const resolvable = {
+        fnRef: {
+          fn: 'funcFactory',
+          args: [ 'my fnRef' ]
+        }
+      };
+      const result = resolver(resolvable, data, context, []);
+      expect(result).to.be.a('function');
+    });
+
+    it('should return null if fnRef cannot be found in the context', () => {
+      const resolvable = {
+        fnRef: 'nonExistent'
+      };
+      const result = resolver(resolvable, data, context, []);
+      expect(result).to.be.null;
+    });
+
+    it('should return null if the fnRef returned by a resolvable is not a function', () => {
+      const resolvable = {
+        fnRef: {
+          fn: 'oneArgFunc',
+          args: [ 'my fnRef' ]
+        }
+      };
+      const result = resolver(resolvable, data, context, []);
+      expect(result).to.be.null;
+    });
+  })
+
   describe('arrays', () => {
     it('should resolve all array items', () => {
       const resolvable = [
@@ -184,7 +224,8 @@ describe('resolver', () => {
 function genTestContext() {
   return {
     noArgFunc: function () { return 'noArgFunc'; },
-    oneArgFunc: function (arg1) { return 'arg: ' + arg1; }
+    oneArgFunc: function (arg1) { return 'arg: ' + arg1; },
+    funcFactory: function(arg1) { return function() { return 'factory for: ' + arg1;}}
   };
 }
 

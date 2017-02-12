@@ -4,7 +4,8 @@ const { get, transform, isEqual } = require('lodash');
 
 const { getDataPathsForRefPath } = require('../util/path-utils');
 
-const nameProp = 'fn';
+const resolvableFnProp = 'fn';
+const refFnProp = 'fnRef';
 const argsProp = 'args';
 
 function collectArrayValues(pathStr, data) {
@@ -47,11 +48,18 @@ function resolveString(string, data, context = {}, targetPath) {
 }
 
 module.exports = function resolve(resolvable, data, context, targetPath) {
-  if (typeof context[resolvable[nameProp]] === 'function') {
+  if (typeof context[resolvable[resolvableFnProp]] === 'function') {
     const args = (Array.isArray(resolvable[argsProp]) ? resolvable[argsProp] : []);
-    // console.log('applying:', resolvable[nameProp], 'with:', args.map(arg => resolve(arg, data, context, targetPath)));
-    return context[resolvable[nameProp]]
+    return context[resolvable[resolvableFnProp]]
       .apply(null, args.map(arg => resolve(arg, data, context, targetPath)));
+  }
+  if (resolvable[refFnProp] !== undefined) {
+    const fnRef = context[resolvable[refFnProp]];
+    if (typeof fnRef === 'function') {
+      return context[resolvable[refFnProp]];
+    }
+    const result = resolve(resolvable[refFnProp], data, context, targetPath);
+    return (typeof result === 'function' ? result : null);
   }
   if (typeof resolvable === 'string') {
     return resolveString(resolvable, data, context, targetPath);
