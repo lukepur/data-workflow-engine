@@ -10,6 +10,7 @@ const {
   getRefPathForDataPath,
   getParentConfigNodePath,
   getParentDataPath,
+  getNearestRepeatableAncestorRefPath,
   getMappedPath
 } = require('./util/path-utils');
 const defaultContext = require('./context/context');
@@ -39,6 +40,7 @@ function DataEngine(c, ctx = {}) {
 }
 
 DataEngine.prototype.getWorkflowState = function (data) {
+  const valueCandidates = this.getConfig().getValueCandidatePaths(data);
   const prunedData = pruneData(data, this.getConfig(), this.getPreconditionOrder(), this.getContext());
   const sectionStates = evaluateSectionStates(prunedData, this.getConfig(), this.getContext());
   const edgeStates = evaluateEdgeStates(prunedData, this.getConfig(), this.getContext(), sectionStates);
@@ -46,7 +48,7 @@ DataEngine.prototype.getWorkflowState = function (data) {
   const finalSectionStates = updateUnreachableSections(sectionStates, edgeStates);
   return {
     data: finalData,
-    mapped_data: applyDataMappings(finalData, this.getConfig()),
+    mapped_data: applyDataMappings(finalData, valueCandidates, this.getConfig()),
     derived: evaluateDerived(finalData, this.getConfig().derived, this.getContext()),
     section_states: sectionStates,
     edge_states: edgeStates
@@ -210,14 +212,19 @@ function getFurthest(edge_states) {
   return edge;
 }
 
-function applyDataMappings(data, config) {
+function applyDataMappings(data, valueCandidates, config) {
   const result = {};
-  traverse(data).forEach(function (node) {
-    if (this.isLeaf) {
-      const mappedPath = getMappedPath(this.path, config);
-      set(result, mappedPath, node);
+  valueCandidates.forEach(dataPath => {
+    const val = get(data, dataPath);
+    if (val === undefined) {
+      const configNode = config.getConfigNodeByPath(getRefPathForDataPath(dataPath));
+      if (configNode.default_value !== undefined) {
+        set(result, getMappedPath(dataPath, config), configNode.default_value);
+      }
+    } else {
+      set(result, getMappedPath(dataPath, config), val);
     }
-  })
+  });
   return result;
 }
 
@@ -446,17 +453,6 @@ function validateCustom(config, configPath, data, context, path, validationsProp
 
 function isArrayPath(path) {
   return path.indexOf('*') > -1;
-}
-
-function getNearestRepeatableAncestorRefPath(path) {
-  let pathArr = path.split('.');
-  let item;
-  while (item = pathArr.pop()) {
-    if (item === '*') {
-      return pathArr.join('.').concat('.*');
-    }
-  }
-  return null;
 }
 
 function getAbsoluteDataPath(rootDataPath, refPath) {

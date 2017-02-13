@@ -92,6 +92,41 @@ describe('data-engine', () => {
           const { mapped_data: result } = instance.getWorkflowState(data);
           expect(result.previous_applications[0].comments[0].comment_author).to.eql('Bob');
         });
+
+        describe('default values', () => {
+          it('should set a default static mapped value if no value already present', () => {
+            const { mapped_data: result } = instance.getWorkflowState(data);
+            expect(result.application_details.exemption_permitted).to.be.false;
+          });
+
+          it('should not set a default static mapped value if a value is present', () => {
+            data.application_details.exemption_permitted = true;
+            const { mapped_data: result } = instance.getWorkflowState(data);
+            expect(result.application_details.exemption_permitted).to.be.true;
+          });
+
+          it('should not modify `data` object with default_value', () => {
+            const {data: result } = instance.getWorkflowState(data);
+            expect(result.application_details.exemption_permitted).not.to.exist;
+          });
+
+          it('should set a default value for a nested property in an array if no value already present', () => {
+            const { mapped_data: result } = instance.getWorkflowState(data);
+            expect(result.previous_applications[0].comments[0].flagged).to.be.false;
+          });
+
+          it('should not set a default value for a nested property in an array if a value present', () => {
+            data.previous_applications.items[0].comments[0].flagged = true;
+            const { mapped_data: result } = instance.getWorkflowState(data);
+            expect(result.previous_applications[0].comments[0].flagged).to.be.true;
+          });
+
+          it('should not try to set a default value on non-existent array node', () => {
+            const { mapped_data: result } = instance.getWorkflowState(data);
+            expect(result.previous_applications[0].comments[2]).not.to.exist;
+            expect(result.previous_applications[2]).not.to.exist;
+          });
+        });
       });
     });
 

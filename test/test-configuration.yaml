@@ -7,6 +7,9 @@ sections:
   - id: location
     type: value
     required: Location of application is required
+  - id: exemption_permitted
+    type: value
+    default_value: false
 - id: personal_details
   type: section
   children:
@@ -147,6 +150,9 @@ sections:
       - id: message
         type: value
         required: Comment message is required
+      - id: flagged
+        type: value
+        default_value: false
 
 - id: premium_enrollment
   type: section

@@ -1,6 +1,13 @@
 const traverse = require('traverse');
 const toposort = require('toposort');
-const { cloneDeep } = require('lodash');
+const { cloneDeep, each } = require('lodash');
+
+const {
+  isArrayPath,
+  getDataPathsForRefPath,
+  getPathRelativeToNearestRepeatableAncestor,
+  getNearestRepeatableAncestorRefPath
+} = require('../util/path-utils');
 
 const TOP_LEVEL_PROPS = [
   'sections',
@@ -18,7 +25,9 @@ const SECTION_PROPS = [
   'validations',
   'item_validations',
   'data_mapping',
+  'default_value',
   'fn',
+  'fnRef',
   'args',
   'message',
   'path'
@@ -41,6 +50,27 @@ function create(c) {
 
   config.getConfigNodeByPath = function getConfigNodeByPath(path) {
     return map[path] || map[path.concat('.*')];
+  };
+
+  config.getValueCandidatePaths = function getValueCandidatePaths(data) {
+    let paths = [];
+    each(map, (configNode, path) => {
+      if (configNode && configNode.type === 'value') {
+        // value in array structure
+        if (isArrayPath(path)) {
+          const ancestorPaths = getDataPathsForRefPath(getNearestRepeatableAncestorRefPath(path), data);
+          const relPath = getPathRelativeToNearestRepeatableAncestor(path);
+          ancestorPaths.forEach(ap => {
+            ap = ap.concat(relPath);
+            paths.push(ap);
+          });
+        } else {
+          // standard static path
+          paths.push(path.replace(/^\$\./, '').split('.'));
+        }
+      }
+    });
+    return paths;
   };
 
   // console.log('map keys:', Object.keys(map));

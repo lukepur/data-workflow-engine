@@ -63,3 +63,29 @@ module.exports.getMappedPath = function getMappedPath(dataPath = [], config) {
   mappedPath = mappedPath.concat(currentSegment);
   return mappedPath;
 }
+
+module.exports.isArrayPath = function isArrayPath(path = '') {
+  return path.indexOf('*') > -1;
+}
+
+module.exports.getNearestRepeatableAncestorRefPath = function getNearestRepeatableAncestorRefPath(path) {
+  let pathArr = path.split('.');
+  let item;
+  while (item = pathArr.pop()) {
+    if (item === '*') {
+      return pathArr.join('.').concat('.*');
+    }
+  }
+  return null;
+};
+
+module.exports.getPathRelativeToNearestRepeatableAncestor = function getPathRelativeToNearestRepeatableAncestor(refPath) {
+  let pathArr = refPath.split('.');
+  let item = pathArr.pop();
+  let relPath = [];
+  while (item && item !== '*') {
+    relPath.push(item);
+    item = pathArr.pop();
+  }
+  return relPath;
+}

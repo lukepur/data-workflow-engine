@@ -16,6 +16,13 @@ describe('data-descriptor', () => {
         a: 'pleas remove'
       };
 
+      config.sections[1].children[1].validations = [
+        {
+          fn: 'map',
+          args: [{fnRef: 'fnRef'}]
+        }
+      ];
+
       config.sections[1].children[1].options = [
         {
           label: 'label',
@@ -25,6 +32,8 @@ describe('data-descriptor', () => {
       const instanceConfig = DataDescriptor.create(config);
       expect(instanceConfig.aux).not.to.exist;
       expect(instanceConfig.sections[1].children[1].options).not.to.exist;
+      expect(instanceConfig.sections[1].children[1].validations).to.exist;
+      expect(instanceConfig.sections[1].children[1].validations[0].args[0].fnRef).to.exist;
     });
   });
 
