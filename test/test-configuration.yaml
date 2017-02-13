@@ -126,6 +126,25 @@ sections:
         - $.liability_details.liabilities.*.value
       - 10000
     required: Reason for large liability required
+- id: global
+  type: section
+  children:
+  - id: will_add_notes
+    type: value
+  - id: notes
+    type: value
+    preconditions:
+    - fn: equals
+      args:
+      - $.global.will_add_notes
+      - true
+    required: Notes are required
+    validations:
+    - fn: equals
+      args:
+      - $value
+      - Global notes
+      message: Note contents are highly restricted
 
 - id: previous_applications
   type: section
@@ -192,6 +211,8 @@ decisions:
 
 
 edges:
+- from: global
+  to: START
 - from: START
   to: application_details
 - from: application_details

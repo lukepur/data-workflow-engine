@@ -172,7 +172,9 @@ function updateUnreachableSections(sections, edge_states) {
 }
 
 function _isSectionReachable(edge_states, requestedSectionId) {
-  return !!find(edge_states, {to: requestedSectionId, status: 'active'}) || requestedSectionId === 'START';
+  return !!find(edge_states, {to: requestedSectionId, status: 'active'})
+         || !!find(edge_states, {to: 'START', from: requestedSectionId})
+         || requestedSectionId === 'START';
 }
 
 function _isSectionValid(section_states, requestedSectionId) {
@@ -353,7 +355,7 @@ function evaluateEdgeStates(data = {}, config = {}, context = {}, sectionStates)
     const activePredescesor = find(memo, {to: edge.from, status: 'active'});
     const fromNode = (config.getConfigNodeByPath('$.' + edge.from) || {});
     const toNode = (config.getConfigNodeByPath('$.' + edge.to) || {});
-    if (isTerminalEdgePath(edge.from)) {
+    if (isTerminalEdgePath(edge.from) || edge.to === 'START') {
       status = 'active';
     } else if (activePredescesor) {
       // can get to this node - is it active?

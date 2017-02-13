@@ -71,6 +71,21 @@ describe('data-engine', () => {
         expect(result.premium_enrollment).not.to.exist;
       });
 
+      describe('pre-START section', () => {
+        it('should preserve data in a section which goes to START', () => {
+          let { data: result } = instance.getWorkflowState(data);
+          expect(result.global).to.exist;
+          expect(result.global.notes).to.exist;
+        });
+
+        it('should remove data in a section that goes to START if internal preconditions not met', () => {
+          data.global.will_add_notes = false;
+          let { data: result } = instance.getWorkflowState(data);
+          expect(result.global).to.exist;
+          expect(result.global.notes).not.to.exist;
+        });
+      });
+
       describe('data_mapping feature', () => {
 
         it('should add a `mapped_data` property to state object', () => {
@@ -283,6 +298,24 @@ describe('data-engine', () => {
         expect(section_states.previous_applications.validationMessages).not.to.contain({
           path: 'previous_applications.comments.0.author',
           message: 'Author of comment is required'
+        });
+      });
+
+      it('should include a required message for globally required data', () => {
+        data.global.notes = undefined;
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.global.validationMessages).to.contain({
+          path: 'global.notes',
+          message: 'Notes are required'
+        });
+      });
+
+      it('should include a validation message for globally validated data', () => {
+        data.global.notes = 'Wrong string';
+        const { section_states } = instance.getWorkflowState(data);
+        expect(section_states.global.validationMessages).to.contain({
+          path: 'global.notes',
+          message: 'Note contents are highly restricted'
         });
       });
 

@@ -45,3 +45,7 @@ premium_enrollment:
 
 recommend_us:
   agree: true
+
+global:
+  will_add_notes: true
+  notes: Global notes
