@@ -72,6 +72,10 @@ DataEngine.prototype.nextSection = function (currentSectionId, data) {
   if (currentSectionId === 'END') {
     return null;
   }
+  // Case: sectionId does not exist
+  if (section_states[currentSectionId] === undefined) {
+    return null;
+  }
   if (_isSectionReachable(edge_states, currentSectionId)) {
     // Case: currentSectionId is reachable and valid
     if (_isSectionValid(section_states, currentSectionId)) {
@@ -107,7 +111,11 @@ DataEngine.prototype.previousSection = function (currentSectionId, data) {
       sectionId: 'START'
     };
   }
-  // Case: current sectin is reachable - go back
+  // Case: sectionId does not exist
+  if (section_states[currentSectionId] === undefined) {
+    return null;
+  }
+  // Case: current section is reachable - go back
   if (_isSectionReachable(edge_states, currentSectionId)) {
     return {
       sectionId: _previousSection(edge_states, currentSectionId)

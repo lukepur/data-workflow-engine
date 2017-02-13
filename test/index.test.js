@@ -444,6 +444,10 @@ describe('data-engine', () => {
       expect(instance.nextSection('START', data)).to.eql({sectionId: 'application_details'});
     });
 
+    it('should return null if the sectionId does not exist', () => {
+      expect(instance.nextSection('nonExistent', data)).to.eql(null);
+    });
+
     it('should return null if the currentSectionId is END', () => {
       expect(instance.nextSection('END', data)).to.eql(null);
     });
@@ -509,6 +513,10 @@ describe('data-engine', () => {
 
     it('should return START if the currentSectionId is first_section', () => {
       expect(instance.previousSection('application_details', data)).to.eql({sectionId: 'START'});
+    });
+
+    it('should return null if the sectionId does not exist', () => {
+      expect(instance.previousSection('nonExistent', data)).to.eql(null);
     });
 
     it('should return the previous section if the current section is reachable and valid', () => {
