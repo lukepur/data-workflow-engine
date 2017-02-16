@@ -2,6 +2,7 @@ const traverse = require('traverse');
 const toposort = require('toposort');
 const { cloneDeep, each } = require('lodash');
 
+const configValidator = require('./data-descriptor-validator');
 const {
   isArrayPath,
   getDataPathsForRefPath,
@@ -34,7 +35,10 @@ const SECTION_PROPS = [
 ];
 
 function create(c) {
-  var map = {};
+  // validate config - will throw and error if validation fails
+  configValidator(c);
+
+  let map = {};
   const config = TOP_LEVEL_PROPS.reduce((memo, prop) => {
     if (prop === 'edges') {
       memo[prop] = sortEdges(cloneDeep(c[prop]));
@@ -74,6 +78,7 @@ function create(c) {
   };
 
   // console.log('map keys:', Object.keys(map));
+
   return config;
 }
 
