@@ -46,12 +46,14 @@ DataEngine.prototype.getWorkflowState = function (data) {
   const edgeStates = evaluateEdgeStates(prunedData, this.getConfig(), this.getContext(), sectionStates);
   const finalData = removeUnreachableSectionData(prunedData, edgeStates);
   const finalSectionStates = updateUnreachableSections(sectionStates, edgeStates);
+  const currentPathway = getCurrentPathway(edgeStates);
   return {
     data: finalData,
     mapped_data: applyDataMappings(finalData, valueCandidates, this.getConfig()),
     derived: evaluateDerived(finalData, this.getConfig().derived, this.getContext()),
     section_states: sectionStates,
-    edge_states: edgeStates
+    edge_states: edgeStates,
+    current_pathway: currentPathway
   };
 };
 
@@ -134,6 +136,16 @@ DataEngine.prototype.previousSection = function (currentSectionId, data) {
     sectionId: previousActiveSectionId,
     validationMessages: section_states[previousActiveSectionId].validationMessages
   };
+}
+
+function getCurrentPathway(edgeStates) {
+  return edgeStates.reduce((memo, edge, index) => {
+    if (edge.status === 'active' && edge.to !== 'START') {
+      const decisionString = (edge.when_input_is !== undefined ? ':'+edge.when_input_is : '');
+      memo.push(`${edge.from}${decisionString}`);
+    }
+    return memo;
+  }, []).filter(id => id !== 'START' && id !== 'END');
 }
 
 function previousActiveSectionId(currentSectionId, edge_states) {

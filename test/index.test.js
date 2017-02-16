@@ -354,7 +354,7 @@ describe('data-engine', () => {
       });
     });
 
-    describe('edge_states', () => {
+    describe('edge_states property', () => {
       it('should have an edge_states property', () => {
         expect(instance.getWorkflowState({}).edge_states).to.exist;
       });
@@ -425,6 +425,42 @@ describe('data-engine', () => {
         const { edge_states } = instance.getWorkflowState(data);
         const decisionFalseEdge = find(edge_states, {from: 'meets_premium_requirements', when_input_is: false});
         expect(decisionFalseEdge.status).to.eql('inactive');
+      });
+    });
+
+    describe('current_pathway property', () => {
+      it('should have a current_pathway property', () => {
+        expect(instance.getWorkflowState(data).current_pathway).to.exist;
+      });
+
+      it('should return an array of the nodes active for full data', () => {
+        expect(instance.getWorkflowState(data).current_pathway).to.eql([
+          'application_details',
+          'personal_details',
+          'asset_details',
+          'liability_details',
+          'previous_applications',
+          'meets_premium_requirements:true',
+          'premium_enrollment',
+          'will_enrol_premium:true',
+          'recommend_us',
+          'final_notes'
+        ]);
+      });
+
+      it('should return an array of the nodes active for alternate path', () => {
+        data.premium_enrollment.accept = false;
+        expect(instance.getWorkflowState(data).current_pathway).to.eql([
+          'application_details',
+          'personal_details',
+          'asset_details',
+          'liability_details',
+          'previous_applications',
+          'meets_premium_requirements:true',
+          'premium_enrollment',
+          'will_enrol_premium:false',
+          'final_notes'
+        ]);
       });
     });
   });
