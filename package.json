@@ -30,6 +30,7 @@
     "mocha": "^3.2.0"
   },
   "dependencies": {
+    "data-resolver": "0.0.2",
     "lodash": "^4.17.4",
     "toposort": "^1.0.2",
     "traverse": "^0.6.6"

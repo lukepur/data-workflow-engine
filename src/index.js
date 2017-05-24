@@ -2,7 +2,7 @@ const { cloneDeep, merge, set, get, find, dropRight, reduce } = require('lodash'
 const traverse = require('traverse');
 const toposort = require('toposort');
 
-const resolve = require('./resolver/resolver');
+const resolve = require('data-resolver');
 const DataDescriptor = require('./data-descriptor/data-descriptor');
 const prettyJSON = require('./util/pretty-json');
 const {
