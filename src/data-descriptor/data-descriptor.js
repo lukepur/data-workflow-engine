@@ -24,6 +24,7 @@ const SECTION_PROPS = [
   'preconditions',
   'required',
   'validations',
+  'is_array',
   'item_validations',
   'data_mapping',
   'default_value',
@@ -121,7 +122,7 @@ function buildIdPath(node, tail = []) {
     return tail;
   }
   if (value && value.id) {
-    if (value.type === 'array_group') {
+    if (value.type === 'group' && value.is_array) {
       // Add an array index placeholder
       return buildIdPath(node.parent, [value.id, '*'].concat(tail));
     }

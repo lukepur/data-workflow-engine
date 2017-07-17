@@ -55,8 +55,9 @@ sections:
       - dr
     required: Doctor type is required
   - id: contact_numbers
-    type: array_value
+    type: value
     required: Contact numbers are required
+    is_array: true
     validations:
     - fn: greaterThan
       args:
@@ -75,8 +76,9 @@ sections:
   type: section
   children:
   - id: assets
-    type: array_group
+    type: group
     required: At least one asset is required
+    is_array: true
     children:
     - id: value_known
       type: value
@@ -102,7 +104,8 @@ sections:
   type: section
   children:
   - id: liabilities
-    type: array_group
+    type: group
+    is_array: true
     children:
     - id: value
       type: value
@@ -153,14 +156,16 @@ sections:
     type: value
     data_mapping: previous_applications_exist
   - id: items
-    type: array_group
+    type: group
     data_mapping: previous_applications
+    is_array: true
     children:
     - id: status
       type: value
       required: Status is required
     - id: comments
-      type: array_group
+      type: group
+      is_array: true
       children:
       - id: author
         type: value

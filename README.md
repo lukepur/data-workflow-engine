@@ -22,7 +22,7 @@ These entities have the following properties:
 #### `section`
 
   - `id`: a unique string reference to this `section`
-  - `children`: an array of the `section`'s items (either `group`, `array_group`, or `value`)
+  - `children`: an array of the `section`'s items (either `group`, or `value`)
 
 An `section` of a data instance can be in one of the following states:
 
@@ -64,8 +64,7 @@ The following special characters can be used in paths:
 ### Data mapping
 
 If a different structure of the data returned by the `getWorkflowState` method is
-required, the `data_mapping` property can be used to specify what a `value`, `array_value`
-or `array_group` node's value is bound to in the `mapped_data` object. The `mapped_data` object
+required, the `data_mapping` property can be used to specify what a `value` or `group` node's value is bound to in the `mapped_data` object. The `mapped_data` object
 is included in addition to the `data` property which maintains the hierarchy defined in the
 configuration.
 
