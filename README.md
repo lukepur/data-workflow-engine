@@ -5,6 +5,14 @@ A configurable data workflow engine. Configure an engine with:
   1. a workflow configuration JSON
   2. a `computation_context`
 
+## Use cases
+
+The engine is designed as generically as possible, so that a wide range of workflows can be implemented. Some examples might include:
+  - A dynamic loan application
+  - Customer support tool
+
+The engine is environment agnostic, so the same workflow configuration can be applied client and server side for secure workflow instance verification/validation.
+
 ## Demo
 
 View an online demo here: [https://lukepur.github.io/data-workflow-engine](https://lukepur.github.io/data-workflow-engine).
